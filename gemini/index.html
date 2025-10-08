@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Arquivista do Tempo - Projeto Base</title>
+    <!-- Carregamento do Tailwind CSS para estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos personalizados para o Canvas e container */
+        body {
+            /* MELHORIA GRÁFICA: Tipografia mais legível e com estilo futurista */
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #1a1a2e;
+            /* Fundo escuro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            /* Evita barras de rolagem */
+        }
+
+        #game-container {
+            width: 90vw;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            /* Proporção de tela comum para jogos */
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #2c0e3a;
+            /* Cor base do "céu noturno" antigo */
+        }
+
+        .hud-info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 1rem;
+            color: white;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-bottom-right-radius: 0.5rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURAÇÃO E VARIÁVEIS GLOBAIS ---
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let WIDTH = canvas.offsetWidth;
+        let HEIGHT = canvas.offsetHeight;
+
+        let gameState = 'INICIAL';
+        let lastTime = 0;
+        const keys = {};
+        let cameraX = 0;
+
+        // **MELHORIA GRÁFICA**: Variável para controle de feedback de colisão (flash)
+        let screenFlashTimer = 0;
+        const SCREEN_FLASH_DURATION = 150; // Duração do flash em ms
+
+        // Constantes do jogo
+        const GRAVITY = 0.6;
+        const MAX_SPEED = 6;
+        const JUMP_VELOCITY = 15;
+
+        // Dados de posição inicial do player e inimigos
+        const PLAYER_INITIAL_X = 100;
+        const PLAYER_INITIAL_Y = 100;
+
+        const LEVEL_ENEMIES_DATA = [
+            // { x, y, width, height, patroulDist }
+            { x: 400, y: HEIGHT - 100, w: 30, h: 50, dist: 400 },
+            { x: 2400, y: HEIGHT - 100, w: 30, h: 50, dist: 200 },
+        ];
+
+        // Variável de controle para garantir que o spritesheet está carregado
+        let assetsLoaded = false;
+
+        // Variáveis de Jogo e Pontuação
+        const WORD_TO_COLLECT = "TEMPO"; // Palavra chave
+        let lettersCollected = []; // Armazenará as letras coletadas
+
+        // --- 2. CARREGAMENTO DE ASSETS (Spritesheet) ---
+        const playerImage = new Image();
+        // Placeholder de Spritesheet (64x64 por sprite, 8 col x 13 linhas)
+        playerImage.src = 'spritesheet.png';
+
+        playerImage.onload = () => {
+            assetsLoaded = true;
+            console.log("Spritesheet carregado.");
+        };
+
+        // --- 3. INPUT DE TECLADO ---
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+
+            // Lógica de Reinício
+            if (gameState === 'GAME_OVER' && e.code === 'Enter') {
+                resetGame();
+            }
+
+            // Evita que a barra de espaço role a página
+            if (e.code === 'Space') e.preventDefault();
+
+            // Inicia o jogo no primeiro input
+            if (gameState === 'INICIAL' && assetsLoaded) {
+                gameState = 'JOGANDO';
+                document.querySelector('.hud-info').innerHTML = `**Jogo:** O Arquivista do Tempo (JOGANDO)<br>**Controles:** Setas/WASD p/ Mover, Espaço p/ Pular, F p/ Disparar`;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        // --- 4. CLASSES DE ENTIDADES E OBJETOS DO JOGO ---
+
+        /** Classe Base para qualquer objeto retangular no jogo. */
+        class Entity {
+            constructor(x, y, w, h, color) {
+                this.x = x;
+                this.y = y;
+                this.width = w;
+                this.height = h;
+                this.color = color;
+            }
+
+            // Entidades que não são o player usam o desenho básico
+            draw(ctx, cameraX) {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - cameraX, this.y, this.width, this.height);
+            }
+        }
+
+        /** Representa o projétil (Raio Purificador). */
+        class Projectile extends Entity {
+            constructor(x, y, direction) {
+                // Cor mais clara e formato de tiro
+                super(x, y, 18, 4, 'rgba(255, 200, 50, 1)');
+                this.vx = 15 * direction;
+                this.isAlive = true;
+            }
+
+            update() {
+                this.x += this.vx;
+                // Culling: Marca para remoção quando sair da tela
+                if (this.x - cameraX > WIDTH || this.x - cameraX + this.width < 0) {
+                    this.isAlive = false;
+                }
+            }
+
+            draw(ctx, cameraX) {
+                ctx.fillStyle = this.color;
+                // Efeito de brilho para o projétil
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.fillRect(this.x - cameraX, this.y, this.width, this.height);
+                ctx.shadowBlur = 0; // Reseta o blur para não afetar outros objetos
+            }
+        }
+
+        /** Representa o Inimigo Guardião Estático. */
+        class Enemy extends Entity {
+            constructor(x, y, w, h, patroulDist) {
+                super(x, y, w, h, 'rgba(200, 50, 50, 1)');
+                this.startX = x;
+                this.patroulDist = patroulDist;
+                this.vx = 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                if (this.x > this.startX + this.patroulDist || this.x < this.startX) {
+                    this.vx *= -1;
+                }
+            }
+
+            draw(ctx, cameraX) {
+                // Culling simples 
+                if (this.x - cameraX > WIDTH + 500 || this.x - cameraX + this.width < -500) {
+                    return;
+                }
+                super.draw(ctx, cameraX);
+            }
+        }
+
+        /** O Player Arquivista com lógica de animação. */
+        class Player extends Entity {
+            constructor(x, y) {
+                // Dimensões de Colisão (hitbox)
+                super(x, y, 30, 50, 'rgba(100, 150, 255, 0.0)'); // Cor transparente para usar o sprite
+
+                this.vx = 0;
+                this.vy = 0;
+                this.onGround = false;
+                this.doubleJumpAvailable = true;
+                this.facing = 1;
+                this.initialX = x;
+                this.initialY = y;
+
+                // --- Propriedades de Animação ---
+                this.SPRITE_SIZE = 64; // Tamanho do quadro no spritesheet
+                this.frameIndex = 0;
+                this.frameTimer = 0;
+                this.animState = 'idle';
+                this.isShooting = false;
+                this.shootTimer = 0;
+                this.SHOOT_DURATION = 200; // Duração da animação de tiro em ms
+
+                // **SISTEMA DE FRAMES VARIÁVEIS**
+                this.animations = {
+                    // row: Posição Y (em 64px de altura) no spritesheet
+                    // frames: **QUANTIDADE DE FRAMES** que essa animação possui.
+                    // fps: Velocidade da animação em Frames Por Segundo.
+                    idle: { row: 0, frames: 1, fps: 8 },
+                    run: { row: 3, frames: 4, fps: 15 },
+                    jump: { row: 3, frames: 2, fps: 10 }, // Exemplo de animação com poucos frames
+                    shoot: { row: 4, frames: 4, fps: 20 }
+                };
+            }
+
+            /**
+             * Fase 1: Input Handling (processa as teclas pressionadas e define o estado de movimento/ação)
+             */
+            handleMovement() {
+                this.vx = 0;
+
+                if (keys['ArrowLeft'] || keys['KeyA']) {
+                    this.vx = -MAX_SPEED;
+                    this.facing = -1;
+                }
+                if (keys['ArrowRight'] || keys['KeyD']) {
+                    this.vx = MAX_SPEED;
+                    this.facing = 1;
+                }
+
+                if ((keys['Space'] || keys['KeyW'])) {
+                    if (this.onGround) {
+                        this.vy = -JUMP_VELOCITY;
+                        this.onGround = false;
+                        this.doubleJumpAvailable = true;
+                    } else if (this.doubleJumpAvailable) {
+                        this.vy = -JUMP_VELOCITY * 0.8;
+                        this.doubleJumpAvailable = false;
+                    }
+                    keys['Space'] = keys['KeyW'] = false;
+                }
+
+                if (keys['KeyF']) {
+                    if (this.shootTimer <= 0) {
+                        this.isShooting = true;
+                        this.shootTimer = this.SHOOT_DURATION;
+                        shootProjectile();
+                    }
+                    keys['KeyF'] = false;
+                }
+            }
+
+            /**
+             * Fase 2: Physics Update (aplica gravidade, movimento, timers)
+             */
+            update(deltaTime) {
+                this.handleMovement();
+
+                this.vy += GRAVITY;
+                if (this.vy > 20) this.vy = 20;
+
+                if (this.shootTimer > 0) {
+                    this.shootTimer -= deltaTime;
+                } else {
+                    this.isShooting = false;
+                }
+            }
+
+            // Lógica de Animação
+            animate(deltaTime) {
+                let newState = 'idle';
+
+                if (!this.onGround) {
+                    // Usa a nova animação 'jump' se não estiver no chão
+                    newState = 'jump';
+                } else if (this.vx !== 0) {
+                    newState = 'run';
+                }
+
+                if (this.isShooting || this.shootTimer > 0) {
+                    newState = 'shoot';
+                }
+
+                const currentAnim = this.animations[newState];
+
+                if (this.animState !== newState) {
+                    this.animState = newState;
+                    this.frameIndex = 0;
+                    this.frameTimer = 0;
+                }
+
+                const frameInterval = 1000 / currentAnim.fps;
+
+                this.frameTimer += deltaTime;
+                if (this.frameTimer >= frameInterval) {
+                    this.frameTimer -= frameInterval;
+
+                    // **TRECHO CRÍTICO**: O operador módulo (%) garante o loop
+                    // Usa currentAnim.frames, que é a quantidade de frames definida no mapa
+                    this.frameIndex = (this.frameIndex + 1) % currentAnim.frames;
+                }
+            }
+
+            // Desenho do Player (mantido)
+            draw(ctx, cameraX) {
+                if (!assetsLoaded) {
+                    ctx.fillStyle = 'rgba(100, 150, 255, 1)';
+                    ctx.fillRect(this.x - cameraX, this.y, this.width, this.height);
+                    return;
+                }
+
+                const anim = this.animations[this.animState];
+
+                const sx = this.frameIndex * this.SPRITE_SIZE; // Calcula a posição X do frame
+                const sy = anim.row * this.SPRITE_SIZE;       // Calcula a posição Y da linha de animação
+                const sw = this.SPRITE_SIZE;
+                const sh = this.SPRITE_SIZE;
+
+                const dx = this.x - cameraX - 17;
+                const dy = this.y - 14;
+                const dw = this.SPRITE_SIZE * 1.5;
+                const dh = this.SPRITE_SIZE * 1.5;
+
+                ctx.save();
+
+                if (this.facing === -1) {
+                    ctx.translate(dx + dw, dy);
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(playerImage, sx, sy, sw, sh, 0, 0, dw, dh);
+                } else {
+                    ctx.drawImage(playerImage, sx, sy, sw, sh, dx, dy, dw, dh);
+                }
+
+                ctx.restore();
+            }
+
+            reset() {
+                this.x = this.initialX;
+                this.y = this.initialY;
+                this.vx = 0;
+                this.vy = 0;
+                this.onGround = false;
+                this.doubleJumpAvailable = true;
+                this.facing = 1;
+                this.frameIndex = 0;
+                this.frameTimer = 0;
+                this.animState = 'idle';
+                this.isShooting = false;
+                this.shootTimer = 0;
+            }
+        }
+
+        /** Simula uma camada de fundo com paralaxe. */
+        class ParallaxLayer {
+            constructor(ratio, color, heightFactor, density, size) {
+                this.ratio = ratio;
+                this.color = color;
+                this.heightFactor = heightFactor;
+                this.height = HEIGHT * heightFactor;
+                this.y = HEIGHT - this.height;
+                this.density = density;
+                this.size = size; // **MELHORIA GRÁFICA**: Novo parâmetro para o tamanho dos pontos
+            }
+
+            draw(ctx, cameraX) {
+                const scrollX = cameraX * this.ratio;
+
+                ctx.fillStyle = this.color;
+                for (let i = 0; i < this.density; i++) {
+                    // Offset: Adiciona um offset no Y para que as camadas não se sobreponham perfeitamente
+                    const offsetY = (i * 7) % (this.height - 20) + (this.ratio * 50);
+
+                    const x = ((i * 500) % (WIDTH * 2)) - scrollX % (WIDTH * 2);
+                    const y = this.y + offsetY;
+
+                    ctx.fillRect(x, y, this.size, this.size);
+                }
+            }
+        }
+
+        // --- 5. INICIALIZAÇÃO DO MUNDO E ENTIDADES ---
+
+        const platforms = [
+            new Entity(0, HEIGHT - 50, 1000, 50, '#3e2a52'),
+            new Entity(1200, HEIGHT - 150, 200, 20, '#5e4a72'),
+            new Entity(1600, HEIGHT - 250, 300, 20, '#5e4a72'),
+            new Entity(2200, HEIGHT - 50, 800, 50, '#3e2a52'),
+        ];
+
+        let player = new Player(PLAYER_INITIAL_X, PLAYER_INITIAL_Y);
+        let enemies = [];
+        let projectiles = [];
+
+        function createEnemiesFromData() {
+            return LEVEL_ENEMIES_DATA.map(data =>
+                new Enemy(data.x, data.y, data.w, data.h, data.dist)
+            );
+        }
+
+        enemies = createEnemiesFromData();
+
+        // **MELHORIA GRÁFICA**: Camadas de Paralaxe Mais Profundas e com Offsets
+        const parallaxLayers = [
+            // Camada Ultra-Fundo (ratio muito baixo)
+            new ParallaxLayer(0.1, 'rgba(30, 10, 50, 0.7)', 0.4, 100, 1),
+            // Camada Fundo
+            new ParallaxLayer(0.2, 'rgba(50, 30, 70, 0.8)', 0.5, 80, 3),
+            // Camada Média
+            new ParallaxLayer(0.5, 'rgba(70, 50, 90, 0.8)', 0.7, 50, 5),
+            // Camada Próxima (ratio mais alto)
+            new ParallaxLayer(0.8, 'rgba(90, 70, 110, 0.9)', 0.9, 30, 7)
+        ];
+
+        // --- 6. FUNÇÕES DE MECÂNICA DE JOGO ---
+
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.y + rect1.height > rect2.y;
+        }
+
+        function shootProjectile() {
+            const pX = player.x + (player.facing > 0 ? player.width : -18);
+            const pY = player.y + player.height / 2 - 2;
+            projectiles.push(new Projectile(pX, pY, player.facing));
+        }
+
+        function resetGame() {
+            player.reset();
+            enemies = createEnemiesFromData();
+            projectiles = [];
+            cameraX = 0;
+            screenFlashTimer = 0; // Garante que o flash está desligado
+
+            lettersCollected = [];
+
+            gameState = 'JOGANDO';
+            document.querySelector('.hud-info').innerHTML = `**Jogo:** O Arquivista do Tempo (JOGANDO)<br>**Controles:** Setas/WASD p/ Mover, Espaço p/ Pular, F p/ Disparar`;
+        }
+
+        // --- 7. FUNÇÃO UPDATE (LÓGICA DO JOGO) ---
+
+        /**
+         * Executa a lógica do jogo (Input, Física, Colisão, Culling).
+         * @param {number} deltaTime Tempo decorrido desde o último frame (em ms).
+         */
+        function update(deltaTime) {
+            if (gameState !== 'JOGANDO') return;
+
+            // **MELHORIA GRÁFICA**: Decrementa o timer de flash
+            if (screenFlashTimer > 0) {
+                screenFlashTimer -= deltaTime;
+                if (screenFlashTimer < 0) screenFlashTimer = 0;
+            }
+
+            // ----------------------------------------------------
+            // FASE 1: Atualização de Estado / Animação
+            // ----------------------------------------------------
+            player.update(deltaTime);
+            player.animate(deltaTime);
+            player.onGround = false;
+
+            enemies.forEach(enemy => enemy.update());
+            projectiles.forEach(p => p.update());
+
+
+            // ----------------------------------------------------
+            // FASE 2: Colisão e Resolução de Física (Player/Plataforma)
+            // ----------------------------------------------------
+
+            player.y += player.vy;
+            for (const platform of platforms) {
+                if (checkCollision(player, platform)) {
+                    if (player.vy > 0) {
+                        player.y = platform.y - player.height;
+                        player.vy = 0;
+                        player.onGround = true;
+                    }
+                    else if (player.vy < 0) {
+                        player.y = platform.y + platform.height;
+                        player.vy = 0;
+                    }
+                }
+            }
+
+            player.x += player.vx;
+            for (const platform of platforms) {
+                if (checkCollision(player, platform)) {
+                    if (player.vx > 0) {
+                        player.x = platform.x - player.width;
+                        player.vx = 0;
+                    } else if (player.vx < 0) {
+                        player.x = platform.x + platform.width;
+                        player.vx = 0;
+                    }
+                }
+            }
+
+
+            // ----------------------------------------------------
+            // FASE 3: Colisão Projétil vs. Inimigo (Game Logic)
+            // ----------------------------------------------------
+
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const e = enemies[j];
+
+                    if (checkCollision(p, e)) {
+                        projectiles.splice(i, 1);
+                        enemies.splice(j, 1);
+
+                        // **MELHORIA GRÁFICA**: Feedback de acerto (Flash)
+                        screenFlashTimer = SCREEN_FLASH_DURATION;
+
+                        // Lógica de Pontuação/Coleta de Letra
+                        const missingLetters = WORD_TO_COLLECT.split('').filter(letter =>
+                            !lettersCollected.includes(letter)
+                        );
+
+                        if (missingLetters.length > 0) {
+                            lettersCollected.push(missingLetters[0]);
+                            console.log(`Letra coletada: ${missingLetters[0]}`);
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            // ----------------------------------------------------
+            // FASE 4: Condições de Fim de Jogo e Culling (Cleanup)
+            // ----------------------------------------------------
+
+            // Culling Explícito: Remove projéteis que foram marcados como 'mortos'
+            projectiles = projectiles.filter(p => p.isAlive);
+
+            // Colisão Player vs. Inimigo (Game Over)
+            for (const enemy of enemies) {
+                if (checkCollision(player, enemy)) {
+                    console.log("GAME OVER: Colisão com inimigo!");
+                    gameState = 'GAME_OVER';
+                    // **MELHORIA GRÁFICA**: Feedback de Game Over (Flash mais longo)
+                    screenFlashTimer = SCREEN_FLASH_DURATION * 1.5;
+                }
+            }
+
+            // Queda da tela (Game Over)
+            if (player.y > HEIGHT) {
+                console.log("GAME OVER: Queda da plataforma!");
+                gameState = 'GAME_OVER';
+                screenFlashTimer = SCREEN_FLASH_DURATION * 1.5;
+            }
+
+            // Atualiza a Câmera
+            const centerOffset = WIDTH / 2 - 100;
+            cameraX = player.x - centerOffset;
+            if (cameraX < 0) cameraX = 0;
+        }
+
+        // --- 8. FUNÇÃO DRAW (RENDERIZAÇÃO) ---
+
+        /**
+         * Executa a renderização do jogo (desenho).
+         */
+        function draw() {
+            // **MELHORIA GRÁFICA**: Motion Blur Falso (Trailing Effect)
+            // Não limpamos o canvas completamente. Em vez disso, pintamos uma camada semi-opaca.
+            ctx.fillStyle = 'rgba(44, 14, 58, 0.1)';
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            // 1. Desenha as camadas de Paralaxe (Fundo)
+            parallaxLayers.forEach(layer => layer.draw(ctx, cameraX));
+
+            // 2. Desenha Plataformas (Foreground)
+            platforms.forEach(p => p.draw(ctx, cameraX));
+
+            // 3. Desenha Inimigos 
+            enemies.forEach(e => e.draw(ctx, cameraX));
+
+            // 4. Desenha Projéteis 
+            projectiles.forEach(p => p.draw(ctx, cameraX));
+
+            // 5. Desenha o Player 
+            player.draw(ctx, cameraX);
+
+            // 6. Desenha o HUD 
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Rajdhani, sans-serif';
+
+            // **MELHORIA GRÁFICA**: Sombra para melhor legibilidade do HUD
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+            ctx.shadowBlur = 8;
+
+            // Formata a palavra, mostrando as letras coletadas
+            const displayWord = WORD_TO_COLLECT.split('').map(letter =>
+                lettersCollected.includes(letter) ? letter : '·'
+            ).join(' '); // Usando um ponto intermédio sutil para o "vazio"
+
+            ctx.fillText(`PALAVRA: ${displayWord}`, 20, 30);
+
+            if (lettersCollected.length === WORD_TO_COLLECT.length) {
+                ctx.fillText(`O ARQUIVO FOI ABERTO!`, 20, 60);
+            }
+
+            // Resetar a sombra para não afetar o restante do desenho
+            ctx.shadowBlur = 0;
+
+            // **MELHORIA GRÁFICA**: Desenha o Flash de Colisão
+            if (screenFlashTimer > 0) {
+                const alpha = screenFlashTimer / SCREEN_FLASH_DURATION; // 1.0 (máx) a 0.0 (mín)
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.5})`; // Flash semi-transparente
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            }
+
+            // 7. Tela de JOGO TERMINADO 
+            if (gameState === 'GAME_OVER') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                ctx.fillStyle = '#FF4500';
+                ctx.font = '60px Rajdhani, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('TEMPO ESGOTADO!', WIDTH / 2, HEIGHT / 2 - 20);
+
+                ctx.fillStyle = 'white';
+                ctx.font = '24px Rajdhani, sans-serif';
+                ctx.fillText('Pressione ENTER para Reiniciar', WIDTH / 2, HEIGHT / 2 + 30);
+            }
+
+            // 8. Tela Inicial de Instruções 
+            if (gameState === 'INICIAL' || !assetsLoaded) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                ctx.fillStyle = '#ADD8E6';
+                ctx.font = '40px Rajdhani, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('O ARQUIVISTA DO TEMPO', WIDTH / 2, HEIGHT / 2 - 50);
+
+                ctx.font = '20px Rajdhani, sans-serif';
+                if (assetsLoaded) {
+                    ctx.fillText('Pressione qualquer tecla para começar...', WIDTH / 2, HEIGHT / 2 + 20);
+                    ctx.fillText('Mover: Setas/WASD | Pular: Espaço/W | Disparar: F', WIDTH / 2, HEIGHT / 2 + 60);
+                } else {
+                    ctx.fillText('Carregando assets...', WIDTH / 2, HEIGHT / 2 + 20);
+                }
+            }
+        }
+
+        // --- 9. LOOP PRINCIPAL DO JOGO (Organização final) ---
+
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // 1. Redimensionamento e Ajustes (Execução Lenta)
+            if (canvas.width !== canvas.offsetWidth || canvas.height !== canvas.offsetHeight) {
+                canvas.width = WIDTH = canvas.offsetWidth;
+                canvas.height = HEIGHT = canvas.offsetHeight;
+
+                // Ajuste de plataformas e camadas de paralaxe após redimensionamento
+                platforms[0].y = HEIGHT - 50;
+                platforms[1].y = HEIGHT - 150;
+                platforms[2].y = HEIGHT - 250;
+                platforms[3].y = HEIGHT - 50;
+
+                parallaxLayers.forEach(layer => {
+                    layer.height = HEIGHT * layer.heightFactor;
+                    layer.y = HEIGHT - layer.height;
+                });
+            }
+
+            // 2. Lógica e Física (Update)
+            update(deltaTime);
+
+            // 3. Renderização (Draw)
+            draw();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Inicia o loop do jogo
+        window.onload = function () {
+            canvas.width = WIDTH = canvas.offsetWidth;
+            canvas.height = HEIGHT = canvas.offsetHeight;
+            gameLoop(0);
+        }
+
+    </script>
+</body>
+
+</html>
