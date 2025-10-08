@@ -1,1 +1,13 @@
+Utilizado o CHATGPT
 
+Preciso executar um jogo com o tema nave no espaço, que utilize no mínimo 5 dos recursos citados: Loop de Animação Implementação contínua com requestAnimationFrame Eventos de Teclado Controle de movimento e/ou ações do personagem Paralaxe Criação de profundidade com múltiplas camadas de fundo Detecção de Colisão AABB (Axis-Aligned Bounding Box) ou pixel-aligned simples Spritesheet Animação por quadros de personagem ou inimigos Clipping / Corte Renderização de sub-regiões específicas do spritesheet Disparo / Projéteis Criação, atualização e remoção dinâmica de balas ou objetos
+
+Preciso clipar corretamente essas duas imagens, já arrumei o caminho das imagens no código, chama nave.png e asteroide.png
+
+Está perfeito, agora eu preciso que exista colisão entre a nave e os asteróides, e que tenha um sistema de vidas, caso haja 5 colisões da nave com o asteroide, surja um alert e reinicia o jogo
+
+Quando eu recebo o alert e clico em ok a nave vai para o topo e fica travada por um tempo
+
+Ao atirar, eu preciso que não seja possível atirar infinitamente, preciso que exista um delay entre os tiros, atualmente é possível manter o espaço pressionado e atirar infinitamente
+
+Faz gerar mais asteróides e faz eles serem mais rápidos
