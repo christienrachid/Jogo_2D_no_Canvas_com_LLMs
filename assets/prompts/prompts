@@ -1,0 +1,334 @@
+my teacher gave me this activity help me
+
+🧩 Resumo do Desafio
+Em duplas, os alunos deverão projetar e implementar um jogo 2D para navegador utilizando HTML5 Canvas, JavaScript e CSS, aplicando os conceitos abordados em aula e o apoio de duas LLMs (Modelos de Linguagem) dentre as opções: ChatGPT, Gemini ou Claude.
+
+O projeto tem como meta integrar técnica, criatividade e análise crítica, demonstrando domínio de fundamentos de programação, lógica de jogo e capacidade de uso ético e eficiente da inteligência artificial no desenvolvimento.
+
+Repositório Modelo e Entrega
+🔗 Repositório oficial da atividade (Template):
+👉 https://github.com/christienrachid/Jogo_2D_no_Canvas_com_LLMsLinks to an external site.
+
+Os alunos deverão:
+
+Acessar o repositório acima e clicar em “Use this template” → “Create a new repository”.
+
+Nomear o novo repositório conforme o padrão: dupla-sobrenome1-sobrenome2-tema
+
+Desenvolver o jogo dentro desse repositório.
+
+Realizar um Pull Request (PR) para o repositório oficial do professor até o prazo final.
+
+Enviar o relatório técnico (PDF) na tarefa do Canvas.
+
+Desafio Proposto
+Cada dupla deverá criar um jogo original que explore, no mínimo, cinco dos recursos técnicos listados abaixo:
+
+Recurso Técnico	Descrição
+🎞️ Loop de Animação	Implementação contínua com requestAnimationFrame
+🎮 Eventos de Teclado	Controle de movimento e/ou ações do personagem
+🌄 Paralaxe	Criação de profundidade com múltiplas camadas de fundo
+💥 Detecção de Colisão	AABB (Axis-Aligned Bounding Box) ou pixel-aligned simples
+🧩 Spritesheet	Animação por quadros de personagem ou inimigos
+✂️ Clipping / Corte	Renderização de sub-regiões específicas do spritesheet
+🔫 Disparo / Projéteis	Criação, atualização e remoção dinâmica de balas ou objetos
+Durante o desenvolvimento:
+
+Um integrante será responsável por gerar o código com a LLM A, enquanto o outro valida e testa;
+
+Depois, os papéis serão invertidos na LLM B, garantindo experiência bilateral de uso e revisão crítica.
+
+Temáticas (escolha 1 entre 25)
+Runner na selva • 2) Nave no espaço • 3) Cavaleiro e slimes • 4) Skate urbano • 5) Labirinto neon
+
+Pesca pixel art • 7) Tower defense simples • 8) Metroidvania-lite • 9) Plataforma educacional (coletar letras)
+
+Zumbi survival • 11) Asteroides • 12) Gatos ninjas • 13) Cozinheiro contra pragas • 14) Robô na fábrica
+
+Arqueiro no bosque • 16) Submarino e minas • 17) Voador steampunk • 18) Parkour futurista
+
+Corrida top-down • 20) Quebra-blocos • 21) Exploração lunar • 22) Bruxa e poções • 23) Cowboy duelos
+
+Abelha polinizadora • 25) Reciclagem (educativo)
+
+Se preferirem tema autoral, peçam aprovação rápida ao professor.
+
+Prompts-modelo (copiar/colar e adaptar)
+Abaixo estão exemplos de prompts que podem ser copiados, adaptados e testados em ChatGPT, Gemini ou Claude durante as etapas de criação e aprimoramento do jogo.
+
+1) Ideação da Mecânica
+“Atue como desenvolvedor de jogos 2D em HTML5 Canvas. Sugira 3 ideias de jogo no tema ‘{TEMA}’, cada uma com:
+mecânicas centrais, entidades, estados do jogo, eventos de teclado, uso de paralaxe, colisão, spritesheet/clipping e disparo.
+Inclua uma lista de tarefas priorizadas (MVP → Polimento).”
+
+2) Geração do Esqueleto (HTML, CSS e JS)
+“Crie um projeto base de jogo 2D em Canvas com:
+
+index.html simples;
+
+style.css básico (centralização e fonte legível);
+
+main.js contendo:
+
+loop de animação com requestAnimationFrame,
+
+funções update() e draw(),
+
+controle de teclado (WASD/setas),
+
+cenário com 2–3 camadas de paralaxe,
+
+estrutura de entidades (player, inimigos, balas),
+
+sistema de colisão AABB.
+Inclua comentários explicativos em cada seção do código.”
+
+3) Spritesheet e Clipping
+“Dado um spritesheet com {larguraFrame}x{alturaFrame} e {cols} colunas × {rows} linhas,
+implemente a animação do player (idle, run, shoot) no Canvas.
+Utilize drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh) para realizar o clipping.
+Adicione controle de taxa de quadros (frameTimer).”
+
+4) Disparo e Projéteis
+“Implemente um sistema de disparo:
+
+array de balas,
+
+criação ao pressionar tecla (Espaço),
+
+velocidade e direção,
+
+remoção quando sair da tela.
+Adicione colisão bala vs inimigo (AABB) e atualização de pontuação no HUD.”
+
+5) Depuração e Otimização
+“Analise o código a seguir (colar trecho).
+Sugira melhorias como:
+
+separação de update() e draw(),
+
+evitar criação de objetos dentro do loop,
+
+culling de entidades off-screen,
+
+organização entre input, física e renderização.
+Retorne um diff comentando as mudanças realizadas.”
+
+6) Polimento Visual
+“Sugira melhorias gráficas leves:
+
+paralaxe mais profunda,
+
+camadas com offsets diferentes,
+
+motion blur falso com trailing,
+
+tipografia do HUD,
+
+feedback de colisão (flash ou knockback).
+Inclua trechos de código prontos para colar.”
+
+Regras e Boas Práticas
+Linguagem: JavaScript puro + HTML5 Canvas (sem frameworks).
+
+Assets: use sprites e sons gratuitos (ex.: itch.ioLinks to an external site., OpenGameArt) e credite no relatório.
+
+Performance: evite criar objetos dentro do loop; prefira reuso e arrays estáticos.
+
+Organização: mantenha separação entre update() (lógica) e draw() (renderização).
+
+Boas práticas de IA: registre os prompts utilizados e cite claramente as LLMs que colaboraram no desenvolvimento.
+
+Entrega e Avaliação
+Forma de entrega:
+
+Código-fonte via Pull Request (PR) no repositório central do professor.
+
+Relatório técnico (PDF) enviado via Canvas.
+
+Prazo: até 08/10/2025 às 23h59.
+
+Valor: 10 pontos.
+
+Critérios de Avaliação (10 pontos)
+Critério	Descrição	Pontos
+Canvas & Loop	Estrutura funcional com requestAnimationFrame, update() e draw()	2,0
+Gameplay & Input	Movimentação, ação e resposta ao teclado	2,0
+Técnicas 2D	Implementação de paralaxe e colisão	2,0
+Spritesheet & Clipping	Animação correta e renderização por quadros	2,0
+Disparo / Projéteis	Criação, movimento e remoção adequados	1,0
+Documentação e Relatório	README completo + prompts + relatório técnico	1,0
+Resultado Esperado
+Ao final da atividade, cada dupla deverá ter produzido:
+
+Um jogo 2D funcional e responsivo;
+
+Código-fonte limpo, comentado e organizado;
+
+Reflexão crítica sobre o uso de IA no desenvolvimento;
+
+Entrega consolidada com evidências (prints, GIFs ou vídeo curto).
+
+
+
+
+
+
+
+i will give you the example code first, wait till i give you the order to answer me
+
+
+style css
+html, body {
+  margin: 0;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: #111;
+  color: #eee;
+  font-family: system-ui, sans-serif;
+}
+canvas {
+  background: #000;
+  border: 2px solid #444;
+  image-rendering: pixelated;
+}
+
+
+main js
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+const player = { x: 100, y: 400, w: 40, h: 40, speed: 4 };
+const keys = {};
+
+window.addEventListener('keydown', e => keys[e.code] = true);
+window.addEventListener('keyup', e => keys[e.code] = false);
+
+function update() {
+  if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
+  if (keys['ArrowLeft']  || keys['KeyA']) player.x -= player.speed;
+  if (keys['ArrowUp']    || keys['KeyW']) player.y -= player.speed;
+  if (keys['ArrowDown']  || keys['KeyS']) player.y += player.speed;
+}
+
+function draw() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#6cf';
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+
+
+
+
+index html
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jogo 2D no Canvas</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="game" width="960" height="540"></canvas>
+  <script src="main.js"></script>
+</body>
+</html>
+
+
+
+
+now we weill start the activity, first we will be doing a minesweeper style game using keyboard events for ways to select field and pop mines, paralax for scenario, spritesheet and clippingfor the scenario looks and lastly animation loop for the you lose/ win screen.
+
+To start things give me a functional 5x5 minesweeper code in html with 5 preset fixed mines
+
+
+
+
+i want you to differentiate html and css, also make so we have to press the key Q to mark a spot and space bar to click on the thing
+
+
+
+
+
+now we have keyboard events and colision, i want to use a spritesheet for scenario, recomend me one from internet that you find cute
+
+
+
+
+
+I have a tilesheet to use on the tiles of the game, it is located in ./sheet/Grass.png
+
+
+
+
+now use a separated algorythm to control the game generation, use a 7x7 grid, and with vectors, randomly generate 10xy numbers to where put the bombs, make it so the game and the algorythm are in different files to help clarity
+
+
+
+
+first, we lost the grass texture on the code, remember to put it back (./ sheet/Grass.png)
+
+Next, add a cheat commando, if player types WWSSADAD (space bar) all mines are revealed
+
+Finally, ill be adding a spritesheet of a character, create the STRUCTURE of a simple animation of 4 frames, ill measure everything and say to you how the animation will play out, for now just add the animation somewhere on the screen
+
+
+
+this spinning coin isnt the best but works, now just add some info under the coin space, things like how many actions the player has taken, the quantity os posts added and the ammount of bombs suposedly left on board, create some scoring system that give player some score based on how much time is left on the clock
+
+Also before the game start, give the player the chance of choosing the size of gameboard (up to 10x10) and the ammount of bombs he wants to play, if the player chose some impossible combination of bombs to field or if he doesnt select anything valid, default to 7x7 with 6 bombs
+
+
+
+Exception has occurred: TypeError: Cannot set properties of null (setting 'textContent')
+  at updateUI (file:///C:/Users/senpl/OneDrive/Desktop/Jogo_2D_no_Canvas_com_LLMs/assets/index.html:1065:63)
+    at initGame (file:///C:/Users/senpl/OneDrive/Desktop/Jogo_2D_no_Canvas_com_LLMs/assets/index.html:833:13)
+    at HTMLButtonElement.applyGameSettings (file:///C:/Users/senpl/OneDrive/Desktop/Jogo_2D_no_Canvas_com_LLMs/assets/index.html:791:13)
+
+
+
+At line
+
+            document.getElementById('flag-count').textContent = flaggedCells;
+
+
+When the game starts it dowesnt load a field like worked before
+
+
+
+
+
+And now just a fine tuning you dont need to send me this huge 1k line code in full, change the scoring function a little to be able to score on lose based on your efficency
+
+
+
+
+
+
+
+
+now we just have to show the final score
+
+
+
+
+
+
+an d finally finally, we have to in real time update the score counter on the coin spinning space
+
+
+
+
+
+Finalmente, gere um readme completo muito pica desse projeto todo, dog
