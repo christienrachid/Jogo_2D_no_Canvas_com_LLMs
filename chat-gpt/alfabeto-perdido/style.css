@@ -1,0 +1,16 @@
+/* Estilização básica para centralizar o canvas e usar fonte legível */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #20232a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: "Arial", sans-serif;
+}
+
+canvas {
+  border: 2px solid #61dafb;
+  background-color: #121417;
+}
