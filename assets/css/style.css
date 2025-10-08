@@ -1,0 +1,26 @@
+/* Remove margens e preenchimentos padrão do navegador */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  /* Define uma cor de fundo escura para a página */
+  background-color: #121212;
+  /* Usa Flexbox para centralizar o canvas */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Garante que o corpo ocupe toda a altura da tela */
+  height: 100vh;
+}
+
+canvas {
+  /* Define uma cor de fundo para o canvas, caso a renderização falhe */
+  background-color: #000;
+  /* Adiciona uma borda preta sutil ao redor do canvas */
+  border: 1px solid #000;
+  /* Adiciona uma sombra para destacar o canvas do fundo */
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
