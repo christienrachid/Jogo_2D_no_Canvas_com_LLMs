@@ -57,3 +57,4 @@ Exemplo: `dupla-oliveira-gomes-asteroides`
 
 ---
 Projeto iniciado por Pablo Guthier e Maicon Oliveira 
+Jogo "Galaxy Defender"
