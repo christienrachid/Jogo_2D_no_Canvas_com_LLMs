@@ -1,0 +1,14 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: #111;
+  color: #eee;
+  font-family: system-ui, sans-serif;
+}
+canvas {
+  background: #000;
+  border: 2px solid #444;
+  image-rendering: pixelated;
+}
