@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Galaxy Defender</title>
+<style>
+  body {
+    background: #04102a;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .wrap {
+    position: relative;
+    width: 900px;
+    height: 600px;
+  }
+
+  canvas {
+    display: block;
+    border-radius: 10px;
+    background: #000;
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+  }
+
+  #hud {
+    position: absolute;
+    top: 12px;
+    left: 20px;
+    font-weight: bold;
+    font-size: 18px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+  }
+
+  #overlay {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  #overlay h1 {
+    font-size: 40px;
+    margin: 0 0 12px;
+  }
+
+  #overlay p {
+    margin: 0 0 18px;
+  }
+
+  button {
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: 0;
+    background: linear-gradient(180deg, #2b6bf6, #1646c6);
+    color: #fff;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <canvas id="game" width="900" height="600"></canvas>
+
+    <div id="hud">Pontos: 0 &nbsp; | &nbsp; Vidas: 3</div>
+
+    <div id="overlay">
+      <h1>🌌 Galaxy Defender</h1>
+      <p>Pressione <strong>Iniciar</strong> ou <strong>Enter</strong></p>
+      <button id="startBtn">Iniciar</button>
+    </div>
+  </div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+const hud = document.getElementById('hud');
+
+let state = 'menu';
+let bullets = [];
+let asteroids = [];
+let score = 0;
+let lives = 3;
+
+/* --- imagens --- */
+const bgImg = new Image();
+const shipImg = new Image();
+const asteroidImg = new Image();
+bgImg.src = 'assets/img/fundo.png';     // seu fundo
+shipImg.src = 'assets/img/Nave.png';    // sua nave
+asteroidImg.src = 'assets/img/asteroid.png'; // adicione esta imagem em assets/img/
+
+let bgLoaded = false, shipLoaded = false, asteroidLoaded = false;
+bgImg.onload = () => bgLoaded = true;
+shipImg.onload = () => shipLoaded = true;
+asteroidImg.onload = () => asteroidLoaded = true;
+
+/* --- player --- */
+const player = {
+  w: 80, h: 80,
+  x: canvas.width / 2 - 40,
+  y: canvas.height - 120,
+  speed: 6
+};
+
+/* --- inputs --- */
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.key === 'Enter' && state === 'menu') startGame();
+  if (e.code === 'Space' && state === 'playing') shoot();
+});
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+startBtn.addEventListener('click', startGame);
+
+/* --- funções principais --- */
+function startGame() {
+  state = 'playing';
+  score = 0;
+  lives = 3;
+  bullets = [];
+  asteroids = [];
+  overlay.style.display = 'none';
+}
+
+function shoot() {
+  bullets.push({
+    x: player.x + player.w/2 - 3,
+    y: player.y,
+    w: 6, h: 14,
+    speed: 10
+  });
+}
+
+function spawnAsteroid() {
+  const size = Math.random() * 40 + 30;
+  asteroids.push({
+    x: Math.random() * (canvas.width - size),
+    y: -size,
+    w: size,
+    h: size,
+    speed: Math.random() * 2 + 2
+  });
+}
+
+let asteroidTimer = 0;
+
+function update() {
+  if (state !== 'playing') return;
+
+  // Movimento da nave
+  if (keys['arrowleft'] || keys['a']) player.x -= player.speed;
+  if (keys['arrowright'] || keys['d']) player.x += player.speed;
+  if (keys['arrowup'] || keys['w']) player.y -= player.speed;
+  if (keys['arrowdown'] || keys['s']) player.y += player.speed;
+
+  player.x = Math.max(6, Math.min(canvas.width - player.w - 6, player.x));
+  player.y = Math.max(6, Math.min(canvas.height - player.h - 6, player.y));
+
+  // Atualiza tiros
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    bullets[i].y -= bullets[i].speed;
+    if (bullets[i].y + bullets[i].h < 0) bullets.splice(i, 1);
+  }
+
+  // Criação de asteroides
+  asteroidTimer++;
+  if (asteroidTimer > 50) {
+    spawnAsteroid();
+    asteroidTimer = 0;
+  }
+
+  // Movimento dos asteroides
+  for (let i = asteroids.length - 1; i >= 0; i--) {
+    const a = asteroids[i];
+    a.y += a.speed;
+
+    // Saiu da tela
+    if (a.y > canvas.height) {
+      asteroids.splice(i, 1);
+      continue;
+    }
+
+    // Colisão com nave
+    if (a.x < player.x + player.w &&
+        a.x + a.w > player.x &&
+        a.y < player.y + player.h &&
+        a.y + a.h > player.y) {
+      lives--;
+      asteroids.splice(i, 1);
+      if (lives <= 0) gameOver();
+    }
+  }
+
+  // Colisão tiro x asteroide
+  for (let i = asteroids.length - 1; i >= 0; i--) {
+    const a = asteroids[i];
+    for (let j = bullets.length - 1; j >= 0; j--) {
+      const b = bullets[j];
+      if (b.x < a.x + a.w &&
+          b.x + b.w > a.x &&
+          b.y < a.y + a.h &&
+          b.y + b.h > a.y) {
+        asteroids.splice(i, 1);
+        bullets.splice(j, 1);
+        score += 10;
+        break;
+      }
+    }
+  }
+
+  hud.innerHTML = `Pontos: ${score} &nbsp; | &nbsp; Vidas: ${lives}`;
+}
+
+function draw() {
+  // Fundo
+  if (bgLoaded) ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+  else {
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#001028');
+    grad.addColorStop(1, '#000814');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Tiros
+  ctx.fillStyle = 'yellow';
+  for (const b of bullets) ctx.fillRect(b.x, b.y, b.w, b.h);
+
+  // Asteroides
+  for (const a of asteroids) {
+    if (asteroidLoaded)
+      ctx.drawImage(asteroidImg, a.x, a.y, a.w, a.h);
+    else {
+      ctx.fillStyle = '#888';
+      ctx.beginPath();
+      ctx.arc(a.x + a.w/2, a.y + a.h/2, a.w/2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Nave
+  if (shipLoaded) ctx.drawImage(shipImg, player.x, player.y, player.w, player.h);
+  else {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+  }
+}
+
+function gameOver() {
+  state = 'menu';
+  overlay.style.display = 'block';
+  overlay.innerHTML = `
+    <h1>💥 Game Over 💥</h1>
+    <p>Sua pontuação: ${score}</p>
+    <button id="restartBtn">Jogar Novamente</button>
+  `;
+  document.getElementById('restartBtn').addEventListener('click', startGame);
+}
+
+/* --- loop --- */
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
