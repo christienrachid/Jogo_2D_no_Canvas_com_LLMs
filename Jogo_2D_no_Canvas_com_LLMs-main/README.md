@@ -56,3 +56,4 @@ Exemplo: `dupla-oliveira-gomes-asteroides`
 > — *Joseph Joubert*  
 
 ---
+Projeto iniciado por Pablo Guthier e Maicon Oliveira 
