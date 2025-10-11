@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pollen Maze: Jogo Base 2D</title>
+    <!-- Incluindo Tailwind CSS para layout responsivo e fonte moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Definindo a fonte Inter como a principal */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4; /* Verde claro suave, tema natureza */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Estilo para centralizar o canvas e dar um visual de jogo */
+        #gameCanvas {
+            border: 4px solid #65a30d; /* Borda verde limão */
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            background-color: #86efac; /* Fundo inicial verde claro */
+            display: block;
+            touch-action: none; /* Desabilita gestos de toque no canvas */
+        }
+
+        /* Container principal para o jogo e botões */
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1 class="text-3xl font-bold text-green-700 mb-4">Pollen Maze 🐝 Base (Melhorias Gráficas e Otimização)</h1>
+        <canvas id="gameCanvas" width="800" height="480"></canvas>
+
+        <div class="flex space-x-4">
+            <button id="pauseButton" class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg shadow transition duration-150">
+                Pausar (P)
+            </button>
+            <p class="text-sm text-gray-600 self-center">Use **WASD** ou **Setas** para Mover e **SHIFT** para Dash.</p>
+        </div>
+    </div>
+
+    <script>
+        // Definição das variáveis globais para o Canvas e contexto
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const CANVAS_WIDTH = canvas.width;
+        const CANVAS_HEIGHT = canvas.height;
+
+        // --- Variáveis Globais de Jogo ---
+        let ultimoTempo = 0;
+        let deltaTime = 0;
+        let requestId = null;
+        const GRAVIDADE = 0.5;
+        const VOO_CONE_COEFICIENTE = 20; // Quanta energia gasta por segundo ao voar
+        const REGEN_CHAO_COEFICIENTE = 50; // Quanta energia regenera por segundo no segundo
+        const DANO_COLISAO = 35; // Dano de contato com o inimigo.
+
+        // --- Variáveis do Mundo e Câmera ---
+        const WORLD_WIDTH = 3000; 
+        const WORLD_HEIGHT = 1200;
+        let cameraX = 0; 
+        let cameraY = 0; 
+
+        // --- Estados do Jogo ---
+        const GAME_STATE = {
+            MENU_INICIAL: 'MENU_INICIAL',
+            EXPLORANDO: 'EXPLORANDO',
+            PAUSA: 'PAUSA',
+            GAME_OVER: 'GAME_OVER',
+            VITORIA: 'VITORIA'
+        };
+        let estadoAtual = GAME_STATE.EXPLORANDO; 
+
+        // --- Entidades do Jogo (Player, Inimigos, Coletáveis) ---
+        let player, inimigos = [], balas = [], plataformas = [], polemChaves = [], portaPetala;
+
+        // Variáveis para Sprites (Imagens)
+        let playerSprite = new Image();
+        let playerSpriteLoaded = false;
+        
+        // --- Gerenciamento de Input ---
+        const keys = {};
+
+        // Classe Base para todas as entidades (Player, Inimigos, Obstáculos)
+        class Entidade {
+            constructor(x, y, w, h, cor) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+                this.cor = cor;
+                this.vx = 0;
+                this.vy = 0;
+            }
+
+            /**
+             * Desenha a entidade no Canvas, aplicando o offset da câmera.
+             */
+            draw() {
+                // Transforma coordenadas do mundo em coordenadas da tela
+                const screenX = this.x - cameraX;
+                const screenY = this.y - cameraY;
+
+                // Desenha apenas se estiver visível na tela
+                if (screenX + this.w > 0 && screenX < CANVAS_WIDTH &&
+                    screenY + this.h > 0 && screenY < CANVAS_HEIGHT) {
+                    
+                    ctx.fillStyle = this.cor;
+                    ctx.fillRect(screenX, screenY, this.w, this.h);
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                    ctx.strokeRect(screenX, screenY, this.w, this.h);
+                }
+            }
+        }
+        
+        // Classe Plataforma (Obstáculo Fixo)
+        class Plataforma extends Entidade {
+            constructor(x, y, w, h, cor = '#22c55e') { // Verde Escuro de Planta/Pétala
+                super(x, y, w, h, cor);
+                this.isLethalFloor = false; // Adicionado para identificação
+            }
+        }
+        
+        // Classe Porta Petala - Age como Plataforma, mas pode abrir
+        class PortaPetala extends Plataforma {
+            constructor(x, y, w, h, corFechada = '#991b1b', corAberta = '#fef3c7') {
+                super(x, y, w, h, corFechada);
+                this.corFechada = corFechada;
+                this.corAberta = corAberta;
+                this.aberta = false;
+            }
+
+            abrir() {
+                this.aberta = true;
+                this.cor = this.corAberta;
+                console.log("Porta Pétala Aberta!");
+            }
+
+            /**
+             * Desenha a Porta Pétala, mudando a representação se estiver aberta.
+             */
+            draw() {
+                const screenX = this.x - cameraX;
+                const screenY = this.y - cameraY;
+
+                if (screenX + this.w > 0 && screenX < CANVAS_WIDTH &&
+                    screenY + this.h > 0 && screenY < CANVAS_HEIGHT) {
+                    
+                    ctx.fillStyle = this.aberta ? this.corAberta : this.corFechada;
+
+                    if (this.aberta) {
+                        const gapSize = this.w * 0.2; 
+                        const part1W = (this.w - gapSize) / 2;
+                        
+                        // Parte esquerda da pétala
+                        ctx.fillRect(screenX, screenY, part1W, this.h);
+                        // Parte direita da pétala
+                        ctx.fillRect(screenX + part1W + gapSize, screenY, part1W, this.h);
+
+                        // Desenha luz de saída no gap (efeito visual)
+                        ctx.fillStyle = '#fef08a'; 
+                        ctx.fillRect(screenX + part1W, screenY, gapSize, this.h);
+
+                    } else {
+                        // Fechada, desenha como um bloco sólido
+                        ctx.fillRect(screenX, screenY, this.w, this.h);
+                        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                        ctx.strokeRect(screenX, screenY, this.w, this.h);
+                    }
+                }
+            }
+        }
+        
+        // Classe Coletável (Pólen Chave)
+        class PolemChave extends Entidade {
+            constructor(x, y, raio, cor = '#eab308') {
+                super(x, y, raio * 2, raio * 2, cor); 
+                this.raio = raio;
+                this.coletado = false;
+            }
+
+            /**
+             * Desenha a chave se não tiver sido coletada. 
+             */
+            draw() {
+                // Se coletado, não desenha.
+                if (this.coletado) return;
+                
+                const screenX = this.x - cameraX;
+                const screenY = this.y - cameraY;
+
+                // Desenha apenas se estiver visível na tela
+                if (screenX + this.w > 0 && screenX < CANVAS_WIDTH &&
+                    screenY + this.h > 0 && screenY < CANVAS_HEIGHT) {
+                    
+                    ctx.fillStyle = this.cor;
+                    ctx.beginPath();
+                    // Desenha como círculo visualmente
+                    ctx.arc(screenX + this.raio, screenY + this.raio, this.raio, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+        }
+
+
+        // Classe Player - A Abelha
+        class Player extends Entidade {
+            constructor(x, y) {
+                super(x, y, 30, 30, '#facc15'); // Amarelo Dourado para a Abelha
+                this.velocidade = 5;
+                this.voando = false; 
+                this.noChao = false; 
+                this.dashCooldown = 0;
+                this.maxDashCooldown = 1.5; 
+                this.vooEnergia = 100; 
+                this.maxVooEnergia = 100;
+                
+                // Feedback de Colisão e Invulnerabilidade
+                this.hitTimer = 0; // Tempo restante de invulnerabilidade/flash
+                this.maxHitTime = 0.5; // 0.5 segundos de invulnerabilidade após o dano
+            }
+
+            /**
+             * Aplica dano e knockback ao player. Modifica o estado interno (hitTimer, energia, vx/vy).
+             * ESTA É A ÚNICA FUNÇÃO QUE DEVE RETIRAR ENERGIA POR CAUSA DE COLISÃO COM INIMIGOS.
+             */
+            doCollisionFeedback(enemy) {
+                if (this.hitTimer <= 0) {
+                    this.hitTimer = this.maxHitTime;
+                    
+                    // Aplica Knockback: movimento oposto à direção do inimigo
+                    const knockbackForce = 12;
+                    const direction = this.x < enemy.x ? -1 : 1; 
+                    this.vx = direction * knockbackForce;
+                    this.vy = -knockbackForce / 2; // Pequeno pulo para cima
+
+                    // Perde energia (Dano) - Dano apenas de inimigo.
+                    this.vooEnergia = Math.max(0, this.vooEnergia - DANO_COLISAO); 
+                    console.log(`Dano recebido! Energia: ${this.vooEnergia}`);
+                }
+            }
+            
+            /**
+             * Atualiza a lógica do player (física, input, estado de energia).
+             */
+            update(dt) {
+                // Diminui o timer de invulnerabilidade
+                if (this.hitTimer > 0) {
+                    this.hitTimer -= dt;
+                    // Desacelera o knockback
+                    this.vx = this.vx * 0.95; 
+                } else {
+                    // Lógica normal de input (apenas quando não está em estado de hit)
+                    this.vx = 0;
+                    if (keys['a'] || keys['ArrowLeft']) {
+                        this.vx = -this.velocidade;
+                    }
+                    if (keys['d'] || keys['ArrowRight']) {
+                        this.vx = this.velocidade;
+                    }
+                }
+                
+                if (this.dashCooldown > 0) {
+                    this.dashCooldown -= dt;
+                }
+                
+                // --- Simulação de Voo Limitado: CUSTO DE ENERGIA AO VOAR ---
+                if (keys[' '] || keys['ArrowUp']) {
+                    if (this.vooEnergia > 0) {
+                        this.vy = -this.velocidade * 1.5; 
+                        // Perda de energia por voar
+                        this.vooEnergia = Math.max(0, this.vooEnergia - (VOO_CONE_COEFICIENTE * dt)); 
+                        this.voando = true;
+                    } else {
+                        this.voando = false;
+                    }
+                } else {
+                    this.voando = false;
+                }
+
+                // --- Gravidade e Regeneração de Voo ---
+                if (!this.voando) {
+                    this.vy += GRAVIDADE; 
+                }
+
+                if (this.noChao) {
+                    this.vooEnergia = Math.min(this.maxVooEnergia, this.vooEnergia + (REGEN_CHAO_COEFICIENTE * dt));
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Clampa a posição dentro do mundo
+                this.x = Math.max(0, Math.min(this.x, WORLD_WIDTH - this.w));
+                this.y = Math.min(this.y, WORLD_HEIGHT - 40 - this.h); 
+
+                this.noChao = false;
+            }
+            
+            doDash() {
+                if (this.dashCooldown <= 0) {
+                    this.vx = (keys['d'] || keys['ArrowRight']) ? 18 : ((keys['a'] || keys['ArrowLeft']) ? -18 : 0);
+                    this.vy = (keys[' '] || keys['ArrowUp']) ? -8 : 0; 
+                    this.dashCooldown = this.maxDashCooldown;
+                }
+            }
+
+            /**
+             * Desenha o player e aplica o flicker de invulnerabilidade.
+             */
+            draw() {
+                const screenX = this.x - cameraX;
+                const screenY = this.y - cameraY;
+
+                // Feedback visual de Invulnerabilidade (Flicker)
+                if (this.hitTimer > 0) {
+                    // Alterna a opacidade rapidamente
+                    ctx.globalAlpha = (Math.floor(this.hitTimer * 10) % 2 === 0) ? 0.3 : 1.0;
+                }
+                
+                if (playerSpriteLoaded) {
+                    // Desenha o sprite da abelha se ele estiver carregado
+                    ctx.drawImage(playerSprite, screenX, screenY, this.w, this.h);
+                } else {
+                    // FALLBACK: Desenha o bloco de cor antigo se o sprite não carregar
+                    ctx.fillStyle = this.cor;
+                    ctx.fillRect(screenX, screenY, this.w, this.h);
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                    ctx.strokeRect(screenX, screenY, this.w, this.h);
+                }
+                
+                // Restaura o alpha após desenhar o player (MUITO IMPORTANTE)
+                ctx.globalAlpha = 1.0; 
+            }
+        }
+
+        // Classe Inimigo simples (Lagarta Patrulhadora)
+        class Inimigo extends Entidade {
+            constructor(x, y, limiteEsquerda, limiteDireita) {
+                super(x, y, 40, 20, '#16a34a'); 
+                this.limiteEsquerda = limiteEsquerda;
+                this.limiteDireita = limiteDireita;
+                this.direcao = 1; 
+                this.velocidade = 1;
+            }
+
+            /**
+             * Atualiza a lógica de movimento do inimigo.
+             */
+            update(dt) {
+                this.x += this.velocidade * this.direcao;
+
+                if (this.x < this.limiteEsquerda || this.x + this.w > this.limiteDireita) {
+                    this.direcao *= -1; 
+                }
+            }
+            
+            draw() {
+                super.draw(); // Usa o draw padrão de bloco de cor por enquanto.
+            }
+        }
+
+        // --- Configuração do Paralaxe (5 Camadas para Profundidade) ---
+        // Array estático, reusa objetos de camada
+        const paralaxeCamadas = [
+            // Camada 1: Céu/Névoa Distante
+            { cor: '#a3a3a3', vel: 0.02, drawX: 0, drawY: 0 }, 
+            // Camada 2: Montanhas/Pétalas Gigantes de Fundo
+            { cor: '#f87171', vel: 0.08, drawX: 0, drawY: 0 },
+            // Camada 3: Estrutura da Flor Média
+            { cor: '#ef4444', vel: 0.2, drawX: 0, drawY: 0 },
+            // Camada 4: Caule/Pétalas Próximas
+            { cor: '#dc2626', vel: 0.5, drawX: 0, drawY: 0 },
+            // Camada 5: Folhagem/Detalhes de Primeiro Plano
+            { cor: '#4d7c0f', vel: 0.8, drawX: 0, drawY: 0 } 
+        ];
+
+        /**
+         * Lógica de atualização do Paralaxe: Calcula a posição de desenho (drawX, drawY).
+         */
+        function updateParallax(dt) {
+            paralaxeCamadas.forEach(camada => {
+                // A posição de desenho é baseada na posição da câmera, ajustada pela velocidade da camada.
+                camada.drawX = (-cameraX * camada.vel);
+                camada.drawY = (-cameraY * camada.vel);
+            });
+        }
+
+        /**
+         * Lógica de desenho do Paralaxe: Renderiza as camadas.
+         */
+        function drawParallax() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // Limpa totalmente antes de desenhar o paralaxe
+
+            paralaxeCamadas.forEach(camada => {
+                ctx.fillStyle = camada.cor;
+                
+                let x = camada.drawX % CANVAS_WIDTH;
+                let y = camada.drawY % CANVAS_HEIGHT;
+
+                // Desenho principal
+                ctx.fillRect(x, y, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+                // Cópia horizontal para loop contínuo (se a camada se move rápido o suficiente)
+                if (x < 0) {
+                     ctx.fillRect(x + CANVAS_WIDTH, y, CANVAS_WIDTH, CANVAS_HEIGHT);
+                } else if (x > 0) {
+                     ctx.fillRect(x - CANVAS_WIDTH, y, CANVAS_WIDTH, CANVAS_HEIGHT);
+                }
+
+                // Cópia vertical para loop contínuo
+                if (y < 0) {
+                    ctx.fillRect(x, y + CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT);
+                } else if (y > 0) {
+                    ctx.fillRect(x, y - CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT);
+                }
+            });
+        }
+
+        // --- Sistema de Colisão AABB (Axis-Aligned Bounding Box) ---
+        function checkAABB(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.w &&
+                   rect1.x + rect1.w > rect2.x &&
+                   rect1.y < rect2.y + rect2.h &&
+                   rect1.y + rect2.h > rect2.y;
+        }
+
+        // Resolve Colisão de Plataforma 
+        function resolvePlatformCollision(player, platform) {
+            // Se a plataforma for a Porta Pétala e estiver aberta, não há colisão.
+            if (platform instanceof PortaPetala && platform.aberta) {
+                return; 
+            }
+            
+            if (!checkAABB(player, platform)) return;
+
+            const dx = (player.x + player.w / 2) - (platform.x + platform.w / 2);
+            const dy = (player.y + player.h / 2) - (platform.y + platform.h / 2);
+            const larguraCombinada = (player.w + platform.w) / 2;
+            const alturaCombinada = (player.h + platform.h) / 2;
+
+            const overlapX = larguraCombinada - Math.abs(dx);
+            const overlapY = alturaCombinada - Math.abs(dy);
+
+            if (overlapX < overlapY) {
+                // Colisão Horizontal: Apenas reseta a posição, NÃO aplica dano.
+                if (dx > 0) { player.x += overlapX; } else { player.x -= overlapX; }
+                player.vx = 0; 
+            } else {
+                // Colisão Vertical: Apenas reseta a posição, NÃO aplica dano.
+                if (dy < 0) {
+                    // Colisão pelo topo (pouso / decolagem)
+                    player.y -= overlapY; // Ajusta a posição para eliminar o overlap.
+                    
+                    // *** NOVO CÓDIGO: Dano por tocar o chão (Plataforma inferior) ***
+                    if (platform.isLethalFloor) {
+                         player.vooEnergia = 0;
+                         console.log("GAME OVER: Abelha tocou o chão fatal!");
+                    }
+                    // *************************************************************
+
+                    // *** CORREÇÃO DEFINITIVA: Prioriza o impulso de voo usando a flag player.voando ***
+                    if (player.voando) { 
+                        // Se estiver ativamente voando (vy < 0), MANTEMOS o VY negativo para a decolagem.
+                        player.noChao = false; 
+                    } else {
+                        // Se não estiver voando, significa que está caindo (vy > 0) ou parado (vy = 0).
+                        player.vy = 0;      // Zera a velocidade (pouso/parado).
+                        player.noChao = true; // Permite regeneração de energia.
+                    }
+                    
+                } else {
+                    // Colisão pela base (cabeçada)
+                    player.y += overlapY;
+                    player.vy = 0; 
+                }
+            }
+        }
+
+        /**
+         * Função para manter a câmera centralizada no jogador e dentro dos limites do mundo.
+         */
+        function updateCamera(dt) {
+            let targetX = player.x - CANVAS_WIDTH / 2 + player.w / 2;
+            let targetY = player.y - CANVAS_HEIGHT / 2 + player.h / 2;
+
+            targetX = Math.max(0, targetX); 
+            targetX = Math.min(targetX, WORLD_WIDTH - CANVAS_WIDTH); 
+
+            targetY = Math.max(0, targetY); 
+            targetY = Math.min(targetY, WORLD_HEIGHT - CANVAS_HEIGHT); 
+
+            // Movimento da câmera suave (interpolação)
+            const cameraLerp = 0.05; 
+            cameraX += (targetX - cameraX) * cameraLerp;
+            cameraY += (targetY - cameraY) * cameraLerp;
+        }
+
+        /**
+         * Lógica de verificação do estado da Porta Pétala.
+         */
+        function checkDoorStatus() {
+            if (portaPetala.aberta) return;
+
+            // Verifica se todos os pólenes chave foram coletados
+            const totalChaves = polemChaves.length;
+            const chavesColetadas = polemChaves.filter(c => c.coletado).length;
+
+            if (chavesColetadas === totalChaves) {
+                portaPetala.abrir();
+            }
+        }
+
+        /**
+         * Verifica a condição de vitória (passar pela porta aberta).
+         */
+        function checkWinCondition() {
+            if (portaPetala.aberta && checkAABB(player, portaPetala)) {
+                 // Simplificação: Gana se o jogador entrar na área da porta e ela estiver aberta.
+                 estadoAtual = GAME_STATE.VITORIA; 
+                 console.log("Parabéns, você escapou!");
+            }
+        }
+
+
+        // Função de inicialização do jogo e Level Design
+        function initGame() {
+            player = new Player(50, 50); 
+            plataformas = [];
+            polemChaves = [];
+            inimigos = [];
+            estadoAtual = GAME_STATE.EXPLORANDO; // Garante que o estado está correto ao iniciar/reiniciar
+            
+            // Carregamento de Sprites
+            playerSprite.onload = () => { playerSpriteLoaded = true; };
+            playerSprite.onerror = () => { console.error("Falha ao carregar o sprite da Abelha. Usando o bloco de cor."); };
+            playerSprite.src = "https://placehold.co/30x30/facc15/000?text=BEE"; 
+            
+            // --- Inicialização de Plataformas ---
+            
+            // CHÃO PRINCIPAL (LETHAL FLOOR)
+            const mainFloor = new Plataforma(0, WORLD_HEIGHT - 40, WORLD_WIDTH, 40, '#15803d');
+            mainFloor.isLethalFloor = true; // Flag para o chão fatal
+            plataformas.push(mainFloor);
+            
+            // Área de Início e Queda Vertical (0 a 800)
+            plataformas.push(new Plataforma(0, 100, 200, 20, '#4ade80')); 
+            plataformas.push(new Plataforma(300, 300, 100, 20, '#4ade80')); 
+            plataformas.push(new Plataforma(50, 550, 150, 20, '#4ade80')); 
+            plataformas.push(new Plataforma(400, 700, 300, 20, '#4ade80')); 
+
+            // Desafio Horizontal Longo (800 a 1600)
+            plataformas.push(new Plataforma(700, WORLD_HEIGHT - 150, 200, 30, '#f59e0b')); 
+            plataformas.push(new Plataforma(1400, WORLD_HEIGHT - 150, 300, 30, '#f59e0b')); 
+
+            // Subida Vertical (1700 a 2500)
+            plataformas.push(new Plataforma(1750, WORLD_HEIGHT - 350, 100, 20, '#a3e635')); 
+            plataformas.push(new Plataforma(2100, WORLD_HEIGHT - 550, 150, 20, '#a3e635')); 
+            plataformas.push(new Plataforma(1850, WORLD_HEIGHT - 750, 100, 20, '#a3e635')); 
+            plataformas.push(new Plataforma(2200, WORLD_HEIGHT - 950, 200, 30, '#a3e635')); 
+
+            // Área Secreta / Final (2500+)
+            plataformas.push(new Plataforma(2500, 900, 450, 50, '#ef4444')); 
+            plataformas.push(new Plataforma(2700, 500, 200, 20, '#ef4444')); 
+
+            // Inicializa a Porta Pétala (Objetivo Final)
+            const doorX = 2650;
+            const doorY = 850;
+            const doorW = 150;
+            const doorH = 50;
+            
+            // Plataforma de acesso à porta
+            plataformas.push(new Plataforma(doorX - 50, doorY + doorH, doorW + 100, 20, '#fca5a5')); 
+            
+            portaPetala = new PortaPetala(doorX, doorY, doorW, doorH);
+            plataformas.push(portaPetala); // A porta também é uma plataforma
+
+            // Inicializa Inimigos
+            inimigos.push(new Inimigo(500, 680, 400, 700)); 
+            inimigos.push(new Inimigo(1500, WORLD_HEIGHT - 170, 1400, 1700)); 
+            inimigos.push(new Inimigo(2250, WORLD_HEIGHT - 970, 2200, 2400)); 
+
+            // Inicialização de Coletáveis (3 Chaves)
+            polemChaves.push(new PolemChave(100, 520, 10)); 
+            polemChaves.push(new PolemChave(1500, WORLD_HEIGHT - 200, 10)); 
+            polemChaves.push(new PolemChave(2790, 460, 10)); 
+
+            setupInput();
+            
+            if (!requestId) {
+                gameLoop();
+            }
+        }
+        
+        // Reinicia o jogo
+        function restartGame() {
+            cancelAnimationFrame(requestId);
+            requestId = null;
+            initGame(); // Re-inicializa tudo
+            console.log("Jogo Reiniciado.");
+        }
+
+
+        // Função de configuração de input
+        function setupInput() {
+            document.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                keys[key] = true;
+                
+                if (key === 'p' && estadoAtual !== GAME_STATE.GAME_OVER && estadoAtual !== GAME_STATE.VITORIA) {
+                    estadoAtual = estadoAtual === GAME_STATE.PAUSA ? GAME_STATE.EXPLORANDO : GAME_STATE.PAUSA;
+                    if (estadoAtual === GAME_STATE.EXPLORANDO) {
+                        gameLoop(); 
+                    } else {
+                        cancelAnimationFrame(requestId);
+                        requestId = null;
+                        drawPauseScreen();
+                    }
+                }
+
+                if (key === 'shift') {
+                    e.preventDefault(); 
+                    player.doDash();
+                }
+
+                // Reiniciar o jogo com 'R'
+                if (key === 'r' && (estadoAtual === GAME_STATE.GAME_OVER || estadoAtual === GAME_STATE.VITORIA)) {
+                    e.preventDefault();
+                    restartGame();
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+            });
+        }
+        
+        /**
+         * 1. Função de Atualização de Lógica (Movement, AI, Physics)
+         */
+        function update(dt) {
+            if (estadoAtual !== GAME_STATE.EXPLORANDO) return;
+
+            player.update(dt);
+            updateCamera(dt); 
+            updateParallax(dt);
+            
+            inimigos.forEach(inimigo => inimigo.update(dt));
+
+            checkDoorStatus(); // Verifica se a porta deve abrir
+            
+            // --- Gerenciamento de Colisão (Plataforma) ---
+            plataformas.forEach(platform => {
+                resolvePlatformCollision(player, platform);
+            });
+
+            // --- Gerenciamento de Colisão (Inimigos) ---
+            // ESTE É O ÚNICO LOCAL ONDE O DANO DE COLISÃO É APLICADO
+            inimigos.forEach(inimigo => {
+                if (checkAABB(player, inimigo)) {
+                    player.doCollisionFeedback(inimigo);
+                }
+            });
+
+            // --- Gerenciamento de Colisão (Coletáveis - Pólen Chave) ---
+            polemChaves.forEach(chave => {
+                if (!chave.coletado && checkAABB(player, chave)) {
+                    chave.coletado = true;
+                    console.log("Pólen Chave Coletado!");
+                }
+            });
+
+            checkWinCondition(); // Verifica a condição de vitória
+            
+            // Verifica o Game Over (O jogador morre por energia esgotada, ou pelo chão)
+            if (player.vooEnergia <= 0) {
+                estadoAtual = GAME_STATE.GAME_OVER;
+                console.log("Game Over: Energia Esgotada ou Dano Fatal!");
+            }
+        }
+
+        /**
+         * 2. Função de Desenho (Rendering)
+         */
+        function draw() {
+            // Limpa o canvas e aplica o efeito de fundo
+            ctx.fillStyle = 'rgba(134, 239, 172, 0.1)'; 
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            // Desenha as camadas de Paralaxe
+            drawParallax();
+
+            plataformas.forEach(platform => platform.draw());
+            player.draw();
+            inimigos.forEach(inimigo => inimigo.draw());
+            
+            // polemChaves são desenhados apenas se 'coletado' for false
+            polemChaves.forEach(chave => chave.draw()); 
+
+            drawHUD();
+        }
+
+        // Desenha a tela de pausa (Renderização)
+        function drawPauseScreen() {
+             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+             ctx.fillStyle = 'white';
+             ctx.font = '48px Inter';
+             ctx.textAlign = 'center';
+             ctx.fillText('JOGO PAUSADO', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+             ctx.font = '24px Inter';
+             ctx.fillText('Pressione P para continuar...', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 50);
+        }
+
+        // Desenha a tela de Vitória (Renderização)
+        function drawWinScreen() {
+             ctx.fillStyle = 'rgba(255, 255, 0, 0.7)'; // Amarelo brilhante
+             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+             ctx.fillStyle = '#052e16'; // Verde escuro
+             ctx.font = 'bold 52px Inter';
+             ctx.textAlign = 'center';
+             ctx.fillText('🏆 VITÓRIA! 🏆', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30);
+             ctx.font = '24px Inter';
+             ctx.fillText('Você encontrou a saída!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30);
+             ctx.fillText('Pressione R para Reiniciar', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 70);
+        }
+        
+        // Desenha a tela de Game Over (Renderização)
+        function drawGameOverScreen() {
+             ctx.fillStyle = 'rgba(153, 27, 27, 0.8)'; // Vermelho escuro/sangue
+             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+             ctx.fillStyle = 'white';
+             ctx.font = 'bold 60px Inter';
+             ctx.textAlign = 'center';
+             ctx.fillText('FIM DE JOGO', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 40);
+             ctx.font = '24px Inter';
+             ctx.fillText('Sua energia esgotou.', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 10);
+             ctx.fillText('Pressione R para Reiniciar', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 70);
+        }
+
+
+        // Desenha o HUD (Barra de Voo/Energia) (Renderização)
+        function drawHUD() {
+            const x = 10, y = 10, w = 150, h = 20;
+
+            // Adiciona Sombra para Tipografia do HUD
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 4;
+
+            // Barra de Energia (Fundo)
+            ctx.fillStyle = '#1e293b'; 
+            ctx.fillRect(x, y, w, h);
+
+            // Barra de Energia (Preenchimento)
+            const fillWidth = (player.vooEnergia / player.maxVooEnergia) * w;
+            ctx.fillStyle = player.voando ? '#ef4444' : (player.noChao ? '#65a30d' : '#fcd34d');
+            ctx.fillRect(x, y, fillWidth, h);
+
+            // Texto (NOVA TIPOGRAFIA)
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 14px Inter';
+            ctx.textAlign = 'left';
+            ctx.fillText('ENERGIA DE VOO', x + 5, y + 15);
+            
+            // Exibe o status da coleta de chaves
+            const totalChaves = polemChaves.length;
+            const chavesColetadas = polemChaves.filter(c => c.coletado).length;
+            
+            ctx.fillStyle = chavesColetadas === totalChaves ? '#a7f3d0' : '#fef08a'; // Verde claro se completo, Amarelo se incompleto
+            ctx.font = 'bold 16px Inter';
+            ctx.fillText(`Pólenes: ${chavesColetadas}/${totalChaves}`, x, y + h + 20);
+
+            // Limpa a sombra para o resto do jogo
+            ctx.shadowBlur = 0; 
+            ctx.shadowColor = 'transparent';
+        }
+        
+        // Loop principal do jogo usando requestAnimationFrame
+        function gameLoop(tempoAtual) {
+            // Lógica: Calcula o tempo decorrido (deltaTime)
+            deltaTime = (tempoAtual - ultimoTempo) / 1000;
+            ultimoTempo = tempoAtual;
+
+            // Chamadas de Renderização e Lógica baseadas no estado
+            if (estadoAtual === GAME_STATE.EXPLORANDO) {
+                // Chama a Lógica
+                update(deltaTime);
+                // Chama a Renderização
+                draw();
+            } else if (estadoAtual === GAME_STATE.VITORIA || estadoAtual === GAME_STATE.GAME_OVER) {
+                draw(); // Renderiza o último frame do mundo
+                if (estadoAtual === GAME_STATE.VITORIA) drawWinScreen();
+                if (estadoAtual === GAME_STATE.GAME_OVER) drawGameOverScreen(); 
+                cancelAnimationFrame(requestId);
+                requestId = null;
+                return;
+            } else if (estadoAtual === GAME_STATE.PAUSA) {
+                drawPauseScreen();
+            }
+
+            requestId = requestAnimationFrame(gameLoop);
+        }
+
+        // Evento de click no botão de pausa
+        document.getElementById('pauseButton').addEventListener('click', () => {
+            document.dispatchEvent(new KeyboardEvent('keydown', { 'key': 'p' }));
+        });
+
+        // Inicia o jogo quando a janela estiver carregada
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>
