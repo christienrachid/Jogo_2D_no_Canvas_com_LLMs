@@ -5,10 +5,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jogo 2D no Canvas</title>
-  <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <canvas id="game" width="960" height="540"></canvas>
+    <main class="wrap">
+        <h1 class="title">Nave no Espaço</h1>
+        <canvas id="gameCanvas" width="800" height="600" aria-label="Canvas do jogo"></canvas>
+        <div class="hud">Pontuação: <span id="score">0</span></div>
+        <div class="controls">Teclas: ←↑→↓ ou WASD • Atirar: Espaço • Reiniciar: R</div>
+        <div class="footer">Abra este arquivo localmente no navegador para jogar.</div>
+    </main>
   <script src="main.js"></script>
 </body>
 </html>

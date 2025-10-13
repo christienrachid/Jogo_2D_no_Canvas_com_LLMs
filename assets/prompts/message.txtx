@@ -1,0 +1,98 @@
+Prompt principal (melhorado — cole este como 1 único pedido)
+
+Contexto: Atue como um desenvolvedor sênior com experiência em jogos 2D usando HTML5 Canvas, JavaScript e CSS. Gere um projeto completo e funcional chamado "Nave no Espaço" contendo os arquivos index.html, style.css e main.js. O jogo deve rodar diretamente ao abrir index.html no navegador, sem dependências externas.
+
+Requisitos funcionais obrigatórios
+
+Controles: a nave é controlada por setas ou WASD (suporte a ambos).
+
+Loop de animação: use requestAnimationFrame() com funções separadas update(dt) (lógica) e draw() (renderização).
+
+Paralaxe: implemente 2 a 3 camadas de fundo com velocidades distintas para criar profundidade.
+
+Disparo / Projéteis: tecla Space atira; projéteis movem-se, são reutilizados (object pooling) e somem ao sair da tela.
+
+Detecção de colisão: colisão entre projéteis e inimigos usando AABB (Axis-Aligned Bounding Box).
+
+Entidades: implementar Player, Enemy (asteroides ou inimigos que descem do topo) e Projectile com estruturas reutilizáveis.
+
+Pontuação e fim de jogo: exibir pontuação na HUD; ao acerto de inimigo, remover inimigo e aumentar pontuação; ao colisão player–inimigo, reiniciar jogo.
+
+Requisitos técnicos e de qualidade
+
+Projeto com três arquivos: index.html, style.css, main.js. main.js contém toda a lógica, organizada em seções e com comentários explicativos.
+
+Centralizar <canvas> no index.html. style.css com tipografia legível e fundo escuro.
+
+Funções separadas obrigatórias: update(dt), draw(), init(), resetGame().
+
+Reutilização de objetos: não crie objetos dentro do loop; use pools/arrays pré-alocados quando fizer sentido para performance.
+
+Código em JavaScript moderno (ES6+), limpo e com comentários em cada seção explicando propósito e decisões.
+
+Simplicidade no design visual (sprites simples/drawn shapes), mas com efeitos mínimos (pulso de tiro, animação ao destruir).
+
+Critérios de aceitação
+
+O jogo começa ao abrir index.html e é controlável.
+
+Parallax visível com pelo menos 2 camadas.
+
+Disparo funcional e colisões detectadas corretamente (projéteis removem inimigos e aumentam pontuação).
+
+Player reinicia o jogo ao colidir com inimigo.
+
+main.js organizado, comentado e sem criar entidades dentro do laço update() além do necessário.
+
+Saída esperada: gere o código completo dos três arquivos (index.html, style.css, main.js) prontos para execução local. Mantenha a base do projeto (Eventos de Teclado, Paralaxe, Detecção de Colisão, Disparo / Projéteis, Loop de Animação).
+
+Prompts menores e focados (use em sequência ou separadamente)
+Prompt 1 — Estrutura e arquivos
+
+Gere os arquivos iniciais index.html, style.css e main.js com scaffold mínimo.
+Critérios: <canvas> centralizado, carregamento de main.js, comentários que expliquem como abrir e jogar. O main.js deve exportar (ou expor) funções init() e resetGame().
+
+Prompt 2 — Loop de jogo e skeleton (update/draw)
+
+Implemente o loop principal usando requestAnimationFrame(). Forneça as funções update(dt) (onde dt é delta time em segundos) e draw().
+Critérios: update e draw separados; cálculo correto de dt; init() inicia o loop; resetGame() zera estado.
+
+Prompt 3 — Player e controles de teclado
+
+Implemente a entidade Player com posição, tamanho, velocidade e desenho (forma simples). Adicione controle por setas e WASD (suporte a ambas).
+Critérios: movimento suave com dt, limites da tela respeitados, comentário explicando o mapeamento de teclas.
+
+Prompt 4 — Projetéis e pooling
+
+Implemente Projectile e um object pool para reutilizar projéteis. Space cria (ativa) um projétil do pool; projéteis se movem verticalmente e desativam fora da tela.
+Critérios: sem new dentro do loop para cada tiro; pool configurável (ex.: 20 projéteis).
+
+Prompt 5 — Inimigos e spawn
+
+Crie a entidade Enemy (asteroide ou nave) que spawna no topo em posições X aleatórias e desce com velocidade variável. Controle taxa de spawn.
+Critérios: inimigos reaproveitados quando possível (pool opcional); dificuldade escalonável (ex.: spawn rate aumentando com pontuação).
+
+Prompt 6 — Parallax (2–3 camadas)
+
+Implemente 2–3 camadas de fundo em paralaxe. Cada camada deve se mover a velocidades diferentes e repetir quando sair da tela.
+Critérios: sensação de profundidade perceptível; camadas baseadas em imagens simples ou em patterns desenhados.
+
+Prompt 7 — Colisão AABB (projétil ↔ inimigo, player ↔ inimigo)
+
+Implemente detecção AABB entre projéteis e inimigos e entre player e inimigos. Ao detectar colisão projétil–inimigo: desativar inimigo e projétil e incrementar pontuação. Ao detectar colisão player–inimigo: chamar resetGame().
+Critérios: testes unitários manuais possíveis (ex.: logs) e comentários explicando a fórmula AABB.
+
+Prompt 8 — HUD: pontuação e mensagens
+
+Implemente HUD que mostre pontuação e instruções (teclas). Ao fim de jogo, mostre mensagem “Game Over — Pressione R para reiniciar” (ou clique).
+Critérios: texto legível, desenhado sobre o canvas; R reinicia via resetGame().
+
+Prompt 9 — Performance e organização
+
+Refatore main.js para seguir organização por seções (config, estados, entidades, pools, input, loop, render). Adicione comentários explicativos e dicas breves de performance (ex.: minimizar allocs, usar offscreen canvas se necessário).
+Critérios: código legível em ES6, sem criação massiva de objetos no loop.
+
+Prompt 10 — Comentários e documentação inline
+
+Percorra todo o main.js e adicione comentários explicativos em cada função e bloco lógico, descrevendo por que as decisões foram tomadas (ex.: por que usar pool, por que dt é necessário, por que separar update/draw).
+Critérios: cada seção tem um comentário resumo; funções públicas (init, resetGame) possuem docstring.

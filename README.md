@@ -1,58 +1,69 @@
-# 🎮 Jogo 2D no Canvas com LLMs (ChatGPT, Gemini ou Claude)
+- Alunos:
+- Victor Mendonça Rodrigues
+- Victor Hugo Couto
 
-**Atividade Prática — 7 e 8 de outubro de 2025**  
-📚 *Disciplina: Desenvolvimento de Jogos Digitais*  
-👨🏻‍🏫 **Professor:** [Christien Lana Rachid](https://github.com/christienrachid)  
-📍 *Centro Universitário Academia*  
+# 🚀 Nave no Espaço
 
----
-
-## 🧭 Descrição
-Este é o **repositório modelo oficial** da atividade avaliativa **“Jogo 2D no Canvas com LLMs”**, valendo **10 pontos**.  
-Os alunos devem trabalhar **em duplas**, desenvolvendo um **jogo 2D em HTML5 Canvas, JavaScript e CSS**, utilizando **duas LLMs (ChatGPT, Gemini ou Claude)** para apoio técnico e criativo.
+Um jogo 2D desenvolvido com **HTML5 Canvas**, **JavaScript** e **CSS**, onde o jogador controla uma nave espacial enfrentando ondas de inimigos e obstáculos no espaço sideral.  
+O objetivo é **sobreviver o máximo possível**, destruir inimigos e **acumular pontuação**.
 
 ---
 
-## ⚙️ Entregas
-- **Código-fonte:** via **Pull Request (PR)** neste repositório.  
-- **Relatório técnico (PDF):** via **tarefa no Canvas**.
+## 🧩 Funcionalidades
 
-📅 **Prazo final:** 08/10/2025, até 23h59.
-
----
-
-## 🗂️ Estrutura do Template
-
-index.html
-style.css
-main.js
-
-/assets/ → sprites, sons, fundos
-/docs/ → prints, relatório completo e README detalhado
-/prompts/ → prompts utilizados nas LLMs (.txt)
+- **Controle por teclado**: use as **setas** ou **WASD** para mover a nave.  
+- **Disparo de projéteis**: pressione **Barra de Espaço** para atirar.  
+- **Paralaxe**: 2 a 3 camadas de fundo com velocidades diferentes criam sensação de profundidade.  
+- **Colisões (AABB)**: detecção entre projéteis e inimigos, e entre o player e inimigos.  
+- **Pontuação**: a cada inimigo destruído, a pontuação aumenta.  
+- **Reinício automático**: caso o player colida com um inimigo, o jogo reinicia.  
+- **Loop de animação otimizado** com `requestAnimationFrame()`.
 
 ---
 
-## 🧩 Instruções resumidas
-1. Clique em **Use this template → Create a new repository**  
-2. Nomeie seu repositório:  
+## 🧱 Estrutura do Projeto
 
-dupla-sobrenome1-sobrenome2-tema
+nave-no-espaco/
+│
+├── index.html # Estrutura principal com o <canvas>
+├── style.css # Estilos e layout básico
+└── main.js # Lógica completa do jogo (update, draw, colisões etc.)
 
-Exemplo: `dupla-oliveira-gomes-asteroides`
-
-3. Desenvolva o jogo seguindo os requisitos e orientações.  
-4. Abra um **Pull Request (PR)** para este repositório até a data limite.  
-5. Envie o **relatório técnico** no Canvas.
 
 ---
 
-## 🔗 Documentos
-🎓 [Acesse o Canvas para envio do relatório](https://uniacademia.instructure.com/)  
+## 🕹️ Como Jogar
+
+1. Abra o arquivo `index.html` diretamente no navegador.
+2. Use:
+   - **← / → / ↑ / ↓** ou **W / A / S / D** para mover.
+   - **Barra de Espaço** para atirar.
+3. Destrua os inimigos e evite colisões!
+4. Quando colidir, pressione **R** para reiniciar o jogo.
 
 ---
 
-> “Criar é aprender duas vezes.”  
-> — *Joseph Joubert*  
+## ⚙️ Tecnologias Utilizadas
+
+- **HTML5 Canvas** — renderização 2D do jogo  
+- **JavaScript (ES6+)** — lógica, física e animações  
+- **CSS3** — estilização e centralização do canvas  
 
 ---
+
+## 🧠 Conceitos Aplicados
+
+- **Loop de jogo com `requestAnimationFrame()`**  
+- **Separação entre lógica (`update`) e renderização (`draw`)**  
+- **Reutilização de objetos (object pooling)**  
+- **Detecção de colisão AABB (Axis-Aligned Bounding Box)**  
+- **Camadas de paralaxe para profundidade**  
+
+---
+
+## 💾 Execução Local
+
+1. Baixe ou clone este repositório:
+   ```bash
+   git clone https://github.com/seuusuario/nave-no-espaco.git
+
