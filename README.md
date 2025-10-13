@@ -1,3 +1,7 @@
+- Alunos:
+- Victor Mendonça Rodrigues
+- Victor Hugo Couto
+
 # 🚀 Nave no Espaço
 
 Um jogo 2D desenvolvido com **HTML5 Canvas**, **JavaScript** e **CSS**, onde o jogador controla uma nave espacial enfrentando ondas de inimigos e obstáculos no espaço sideral.  
