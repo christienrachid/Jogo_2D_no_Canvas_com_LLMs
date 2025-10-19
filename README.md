@@ -1,58 +1,43 @@
-# 🎮 Jogo 2D no Canvas com LLMs (ChatGPT, Gemini ou Claude)
+## Runner na Selva
 
-**Atividade Prática — 7 e 8 de outubro de 2025**  
-📚 *Disciplina: Desenvolvimento de Jogos Digitais*  
-👨🏻‍🏫 **Professor:** [Christien Lana Rachid](https://github.com/christienrachid)  
-📍 *Centro Universitário Academia*  
+Um jogo **2D estilo Runner** feito com **HTML5 Canvas, CSS e JavaScript puro**, onde o jogador deve correr pela selva, desviar de obstáculos e acumular pontos enquanto sobrevive o máximo possível.
 
 ---
 
-## 🧭 Descrição
-Este é o **repositório modelo oficial** da atividade avaliativa **“Jogo 2D no Canvas com LLMs”**, valendo **10 pontos**.  
-Os alunos devem trabalhar **em duplas**, desenvolvendo um **jogo 2D em HTML5 Canvas, JavaScript e CSS**, utilizando **duas LLMs (ChatGPT, Gemini ou Claude)** para apoio técnico e criativo.
+## Funcionalidades
+
+- Loop de animação suave com requestAnimationFrame
+
+- Paralaxe em três camadas (céu, árvores e chão)
+
+- Player animado com spritesheet (8 frames × 64x64)
+
+- Obstáculos aleatórios com detecção de colisão AABB
+
+- Efeito de poeira ao pular
+
+- Pontuação crescente a cada segundo
+
+- Reinício do jogo com a tecla R
 
 ---
 
-## ⚙️ Entregas
-- **Código-fonte:** via **Pull Request (PR)** neste repositório.  
-- **Relatório técnico (PDF):** via **tarefa no Canvas**.
+## Controles
 
-📅 **Prazo final:** 08/10/2025, até 23h59.
+Pular - Espaço ou ↑
 
----
-
-## 🗂️ Estrutura do Template
-
-index.html
-style.css
-main.js
-
-/assets/ → sprites, sons, fundos
-/docs/ → prints, relatório completo e README detalhado
-/prompts/ → prompts utilizados nas LLMs (.txt)
+Reiniciar após colisão - R
 
 ---
 
-## 🧩 Instruções resumidas
-1. Clique em **Use this template → Create a new repository**  
-2. Nomeie seu repositório:  
+## Como Executar
 
-dupla-sobrenome1-sobrenome2-tema
+Clone o repositório:
 
-Exemplo: `dupla-oliveira-gomes-asteroides`
+git clone https://github.com/seu-usuario/runner-na-selva.git
 
-3. Desenvolva o jogo seguindo os requisitos e orientações.  
-4. Abra um **Pull Request (PR)** para este repositório até a data limite.  
-5. Envie o **relatório técnico** no Canvas.
+Abra o arquivo index.html em qualquer navegador moderno.
 
----
-
-## 🔗 Documentos
-🎓 [Acesse o Canvas para envio do relatório](https://uniacademia.instructure.com/)  
-
----
-
-> “Criar é aprender duas vezes.”  
-> — *Joseph Joubert*  
+Se divirta!
 
 ---
