@@ -1,14 +1,71 @@
-html, body {
-  margin: 0;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  background: #111;
-  color: #eee;
-  font-family: system-ui, sans-serif;
+@font-face {
+  font-family: "Early GameBoy";
+  src: url("src/extras/font/Early\ GameBoy.ttf") format("truetype");
 }
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: radial-gradient(circle at center, #555 0%, #222 100%);
+  font-family: "Early GameBoy", monospace;
+  color: #0f380f;
+}
+
+/* Moldura estilo Game Boy */
+.lcd-frame {
+  position: relative;
+  display: inline-block;
+  background-color: #9bbc0f;
+  border: 8px solid #8b8b8b;
+  border-radius: 12px;
+  box-shadow: inset 0 0 10px #444, 0 6px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* Canvas (a tela do jogo) */
 canvas {
-  background: #000;
-  border: 2px solid #444;
+  width: 480px;
+  height: 432px;
+  display: block;
+  border-radius: 6px;
+  background-color: #9bbc0f;
+
+  /* Efeito Game Boy */
+  filter: grayscale(40%) contrast(1.15) brightness(1.05) sepia(0.4)
+    hue-rotate(65deg);
+
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  position: relative;
+  z-index: 1;
+}
+
+/* Efeito de textura LCD e brilho */
+.lcd-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  z-index: 2;
+
+  /* Linhas horizontais da tela LCD */
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.08) 0px,
+    rgba(0, 0, 0, 0.08) 1px,
+    transparent 2px,
+    transparent 3px
+  );
+
+  /* Reflexo sutil da tela */
+  box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.15),
+    inset 0 0 60px rgba(0, 0, 0, 0.1);
 }

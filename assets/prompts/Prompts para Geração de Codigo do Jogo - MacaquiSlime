@@ -1,0 +1,86 @@
+# Prompts para Geração de Código do Jogo "MacaquiSlime"
+
+Esta seção apresenta prompts detalhados que foram utilizados para gerar as funcionalidades encontradas no projeto "MacaquiSlime" usando ferramentas de geração de código. Os prompts são categorizados por componente do jogo para facilitar a referência e a aplicação.
+
+## 1. Inicialização e Loop Principal do Jogo (Baseado em `main.js`)
+
+### Prompt Geral para Estrutura do Jogo
+
+> "Crie a estrutura principal de um jogo 2D em JavaScript usando HTML5 Canvas. Inclua a inicialização do canvas, carregamento de um arquivo JSON para dados de mapa (como `map.json`), e um loop de jogo (`requestAnimationFrame`) que gerencie diferentes estados do jogo (por exemplo, 'jogando', 'morte', 'gameover'). O loop deve ser responsável por atualizar e desenhar todos os elementos do jogo."
+
+### Prompt para Carregamento de Mapa e Tilesets
+
+> "Desenvolva uma função em JavaScript para carregar e renderizar um mapa de jogo a partir de um arquivo JSON (formato Tiled Map Editor). A função deve processar os dados das camadas de tiles e os tilesets associados, carregando as imagens dos tilesets e desenhando os tiles corretamente no canvas, garantindo que a suavização de imagem (`imageSmoothingEnabled`) esteja desativada para um estilo pixel art."
+
+### Prompt para Spawning de Inimigos
+
+> "Implemente um sistema de spawn de inimigos (slimes) em um jogo 2D de JavaScript. Os inimigos devem aparecer aleatoriamente nas quatro bordas da tela do canvas em intervalos de tempo definidos. Cada inimigo deve ser uma instância de uma classe `Slime` e ser adicionado ao loop principal do jogo para atualização e desenho."
+
+### Prompt para Gerenciamento de Estados do Jogo e Game Over
+
+> "Crie uma máquina de estados para um jogo 2D em JavaScript com os estados 'jogando', 'morte' e 'gameover'. No estado 'morte', o jogo deve exibir uma animação de fechamento circular ao redor do jogador, seguida por uma animação de morte do personagem. No estado 'gameover', a tela deve mostrar uma sobreposição escura com a mensagem 'GAME OVER', a pontuação final e instruções para reiniciar o jogo (por exemplo, 'Pressione F5 para recomeçar'). Inclua a lógica para reiniciar o jogo completamente quando o jogador pressionar uma tecla específica."
+
+## 2. Herói (Baseado em `heroi.js`)
+
+### Prompt para Classe do Herói e Movimentação
+
+> "Crie uma classe `Heroi` em JavaScript para um jogo 2D. O herói deve ter propriedades como posição (x, y), velocidade, vida, pontuação e uma imagem de sprite. Implemente a lógica de movimentação em 8 direções (horizontal, vertical e diagonal) usando as setas do teclado, ajustando a velocidade diagonal para manter a consistência. O herói deve ter limites de tela para não sair das bordas do canvas."
+
+### Prompt para Animação do Herói
+
+> "Adicione funcionalidade de animação à classe `Heroi`. O herói deve ter múltiplos frames de animação para cada uma das 8 direções de movimento. A animação deve ser atualizada com base na direção atual do movimento, e quando o herói estiver parado, deve exibir um frame padrão. Implemente também uma animação de morte separada, que é ativada quando a vida do herói chega a zero, mudando a imagem do sprite e o número de frames."
+
+### Prompt para Ataque do Herói (Projéteis)
+
+> "Implemente um método `atirar` na classe `Heroi`. Este método deve criar uma instância de um projétil (por exemplo, um machado) que se move na última direção em que o herói estava se movendo. O projétil deve ter sua própria velocidade e ser adicionado ao loop de animação do jogo para ser atualizado e desenhado. Adicione um cooldown para o ataque do herói."
+
+### Prompt para Dano e Morte do Herói
+
+> "Implemente um método `tomarDano` na classe `Heroi` que reduz a vida do personagem. Quando a vida do herói atingir zero, o estado do jogo deve mudar para 'morte', e o herói deve iniciar uma animação de morte específica, parando de se mover e de atirar. Limpe todos os inimigos existentes na tela ao entrar no estado de morte."
+
+## 3. Teclado (Baseado em `teclado.js`)
+
+### Prompt para Gerenciamento de Entrada do Teclado
+
+> "Crie uma classe `Teclado` em JavaScript para gerenciar a entrada do usuário. Esta classe deve registrar quais teclas estão sendo pressionadas (`keydown`) e liberadas (`keyup`), e fornecer métodos para verificar se uma tecla específica está atualmente pressionada. Além disso, implemente um mecanismo para registrar callbacks que são disparados uma única vez quando uma tecla é pressionada (para ações como atirar ou reiniciar)."
+
+## 4. Animação (Baseado em `animacao.js`)
+
+### Prompt para Sistema de Animação Genérico
+
+> "Desenvolva uma classe `Animacao` em JavaScript que atua como um motor de animação genérico para sprites em um jogo 2D. Esta classe deve manter uma lista de sprites, ter métodos para adicionar novos sprites e um loop principal (`proximoFrame` usando `requestAnimationFrame`) que itera sobre todos os sprites, chamando seus métodos `atualizar` e `desenhar`. A classe também deve ser responsável por limpar o canvas em cada frame."
+
+## 5. Slime (Baseado em `slime.js`)
+
+### Prompt para Classe do Inimigo (Slime)
+
+> "Crie uma classe `Slime` em JavaScript para representar um inimigo em um jogo 2D. O slime deve ter propriedades como posição (x, y), velocidade, largura, altura e imagens de sprite para os estados 'vivo' e 'morrendo'. Implemente a lógica de movimento para que o slime persiga o herói. O slime deve ter animações de andar e uma animação de morte separada que é ativada quando ele é derrotado, mudando seu estado e sprite."
+
+### Prompt para Animação e Estado do Slime
+
+> "Adicione à classe `Slime` um sistema de estados ('vivo', 'morrendo', 'morto') e animações correspondentes. No estado 'vivo', o slime deve ter uma animação de andar que muda com o tempo. Quando o slime é atingido ou sua vida chega a zero, ele deve transicionar para o estado 'morrendo', exibindo uma animação de morte com múltiplos frames. Após a conclusão da animação de morte, o slime deve passar para o estado 'morto' e ser removido do jogo."
+
+## 6. UI (Baseado em `ui.js`)
+
+### Prompt para Interface do Usuário (HUD)
+
+> "Desenvolva uma classe `UI` em JavaScript para exibir elementos da interface do usuário (HUD) em um jogo 2D. Esta classe deve ser capaz de desenhar informações como a vida atual do herói (representada por corações), a quantidade de slimes derrotados e a pontuação atual, posicionando esses elementos de forma clara no canvas do jogo."
+
+## 7. Machado (Baseado em `axe.js`)
+
+### Prompt para Classe do Projétil (Machado)
+
+> "Crie uma classe `Axe` em JavaScript para representar um projétil em um jogo 2D. O machado deve ter propriedades como posição (x, y), velocidade (horizontal e vertical), e uma imagem de sprite. Implemente a lógica de atualização para que o machado se mova em linha reta na direção definida e seja removido do jogo quando sair dos limites da tela."
+
+## 8. Colisão (Baseado em `collision.js`)
+
+### Prompt para Detecção de Colisões
+
+> "Crie uma função global `verificarColisoes` em JavaScript que detecta colisões entre diferentes tipos de sprites em um jogo 2D. A função deve ser capaz de identificar colisões entre projéteis (machados) e inimigos (slimes), e entre o herói e os inimigos. Ao detectar uma colisão, a função deve acionar as lógicas apropriadas, como reduzir a vida do inimigo/herói, iniciar animações de morte e remover sprites do jogo."
+
+## 9. Estilização e Efeitos Visuais (Baseado em `style.css`)
+
+### Prompt para Estilo Visual Retrô (Game Boy)
+
+> "Crie um arquivo CSS para estilizar um jogo HTML5 Canvas com um tema retrô, similar ao Game Boy. Inclua um `font-face` para uma fonte pixelada. A estilização deve aplicar um fundo radial, uma moldura para o canvas que simule a carcaça de um Game Boy, e filtros CSS no próprio canvas para reproduzir a paleta de cores esverdeada, o contraste e o brilho característicos, além de um efeito de linhas horizontais para simular a tela LCD."
+

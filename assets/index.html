@@ -1,14 +1,24 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jogo 2D no Canvas</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <canvas id="game" width="960" height="540"></canvas>
-  <script src="main.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>macaquislaime</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="lcd-frame">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/js/player/teclado.js"></script>
+    <script src="src/js/player/axe.js"></script>
+    <script src="src/js/player/animacao.js"></script>
+    <script src="src/js/player/heroi.js"></script>
+    <script src="src/js/enemy/slime.js"></script>
+    <script src="src/js/enemy/collision.js"></script>
+    <script src="src/js/gameController/ui.js"></script>
+    <script src="main.js"></script>
+  </body>
 </html>

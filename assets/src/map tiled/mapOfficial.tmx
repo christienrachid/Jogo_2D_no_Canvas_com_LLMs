@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="16" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
+ <editorsettings>
+  <export format="json"/>
+ </editorsettings>
+ <tileset firstgid="1" name="floor" tilewidth="16" tileheight="16" tilecount="208" columns="13">
+  <image source="../../img/scenarios/floor.png" width="208" height="256"/>
+ </tileset>
+ <tileset firstgid="209" name="door" tilewidth="16" tileheight="16" tilecount="16" columns="4">
+  <image source="../../img/scenarios/door.png" width="64" height="64"/>
+ </tileset>
+ <tileset firstgid="225" name="wall" tilewidth="16" tileheight="16" tilecount="16" columns="4">
+  <image source="../../img/scenarios/wall.png" width="64" height="64"/>
+ </tileset>
+ <layer id="1" name="Camada de Blocos 1" width="16" height="16">
+  <data encoding="csv">
+238,228,210,228,210,228,228,210,210,228,211,210,211,210,228,225,
+226,180,14,180,14,180,180,14,14,180,180,14,180,14,180,236,
+217,42,172,42,172,42,42,172,172,42,42,172,42,172,94,216,
+226,180,14,231,231,231,231,231,78,231,231,231,231,14,180,220,
+217,42,172,231,169,231,36,36,231,169,231,169,231,14,180,236,
+226,180,14,169,231,169,231,231,231,231,231,231,231,172,94,216,
+226,180,14,231,231,231,33,49,49,32,231,231,231,14,180,236,
+217,42,172,231,231,169,38,65,65,22,231,169,231,172,94,216,
+217,42,172,78,231,231,38,65,65,22,169,231,231,172,94,216,
+226,180,14,231,231,169,20,11,11,19,231,231,78,14,180,236,
+226,180,14,231,36,36,231,231,169,231,231,192,192,14,180,220,
+217,42,172,169,231,231,169,231,231,192,192,192,192,172,94,216,
+226,180,14,192,192,78,192,192,192,192,78,192,169,14,180,220,
+217,42,172,42,172,42,42,172,172,42,42,172,42,172,94,216,
+226,180,14,180,14,180,180,14,14,180,180,14,180,14,180,236,
+233,234,223,234,223,222,234,223,223,234,224,223,224,223,234,240
+</data>
+ </layer>
+</map>

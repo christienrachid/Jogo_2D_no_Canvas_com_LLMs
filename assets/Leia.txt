@@ -1,0 +1,8 @@
+Como executar o jogo:
+
+1. Abra o terminal e navegue até a pasta do projeto.
+2. Entre na pasta "assets" usando o comando: cd assets
+3. Inicie um servidor local com o comando: python -m http.server 5500
+4. Abra o navegador e acesse: http://localhost:5500/
+
+Pronto! O jogo estará disponível para jogar.
