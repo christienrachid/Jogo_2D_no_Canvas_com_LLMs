@@ -1,0 +1,137 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "src/map tiled/Map2.tmx",
+    "expandedProjectPaths": [
+        "src",
+        "src/js",
+        ".",
+        "src/map tiled"
+    ],
+    "fileStates": {
+        "": {
+            "scaleInDock": 4
+        },
+        "#door": {
+            "scaleInDock": 1
+        },
+        "#floor": {
+            "scaleInEditor": 1
+        },
+        "#wall": {
+            "scaleInDock": 1
+        },
+        "map.json": {
+            "scale": 3.16171875,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 127.93674326661724,
+                "y": 127.93674326661726
+            }
+        },
+        "map.json#door": {
+            "scaleInDock": 1
+        },
+        "map.json#floor": {
+            "scaleInDock": 1
+        },
+        "map.json#wall": {
+            "scaleInDock": 1
+        },
+        "src/map tiled/Map.tmx": {
+            "scale": 3.5973333333333333,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 112.44440326167533,
+                "y": 112.44440326167533
+            }
+        },
+        "src/map tiled/Map.tmx#door": {
+            "scaleInDock": 1
+        },
+        "src/map tiled/Map.tmx#floor": {
+            "scaleInDock": 1
+        },
+        "src/map tiled/Map.tmx#wall": {
+            "scaleInDock": 1
+        },
+        "src/map tiled/Map2.tmx": {
+            "scale": 2,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 140.75,
+                "y": 136.25
+            }
+        },
+        "src/map tiled/Map2.tmx#door": {
+            "scaleInDock": 5.5
+        },
+        "src/map tiled/Map2.tmx#floor": {
+            "scaleInDock": 2
+        },
+        "src/map tiled/Map2.tmx#wall": {
+            "scaleInDock": 1
+        },
+        "src/map tiled/mapOfficial.tmx": {
+            "scale": 3,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 127.99999999999999,
+                "y": 127.83333333333331
+            }
+        },
+        "src/map tiled/mapOfficial.tmx#door": {
+            "scaleInDock": 1
+        },
+        "src/map tiled/mapOfficial.tmx#floor": {
+            "scaleInDock": 2
+        },
+        "src/map tiled/mapOfficial.tmx#wall": {
+            "scaleInDock": 1
+        },
+        "src/mapa tiled/Map.tmx": {
+            "scale": 2,
+            "selectedLayer": -1,
+            "viewCenter": {
+                "x": 93.25,
+                "y": 118.75
+            }
+        },
+        "src/mapa tiled/Map.tmx#door": {
+            "scaleInDock": 1
+        },
+        "src/mapa tiled/Map.tmx#floor": {
+            "scaleInDock": 4
+        },
+        "src/mapa tiled/Map.tmx#wall": {
+            "scaleInDock": 5.5
+        }
+    },
+    "last.exportedFilePath": "C:/Users/ninho/Projetos/GameMacacoSlime/dupla-BrunoJesus-LucasLeite-MacacoSlime/assets",
+    "last.imagePath": "C:/Users/ninho/Projetos/GameMacacoSlime/dupla-BrunoJesus-LucasLeite-MacacoSlime/assets/img/scenarios",
+    "map.height": 16,
+    "map.lastUsedExportFilter": "Todos os Ficheiros (*)",
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "map.width": 16,
+    "openFiles": [
+        "src/map tiled/mapOfficial.tmx",
+        "src/map tiled/Map2.tmx"
+    ],
+    "project": "map.tiled-project",
+    "recentFiles": [
+        "src/map tiled/mapOfficial.tmx",
+        "src/map tiled/Map2.tmx",
+        "src/map tiled/Map.tmx",
+        "map.json",
+        "src/mapa tiled/Map.tmx"
+    ],
+    "tileset.embedInMap": true,
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}
