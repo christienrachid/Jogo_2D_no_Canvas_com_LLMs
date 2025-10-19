@@ -1,14 +1,23 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jogo 2D no Canvas</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Runner na Selva - Projeto Base</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <canvas id="game" width="960" height="540"></canvas>
-  <script src="main.js"></script>
+<div class="game-wrap">
+<canvas id="game"></canvas>
+</div>
+
+
+<div class="hud">
+<div class="score">Pontuação: <span id="score">0</span></div>
+<div class="info">Pular: Espaço / ↑ &nbsp;•&nbsp; Reiniciar: R</div>
+</div>
+
+
+<script src="main.js"></script>
 </body>
 </html>
