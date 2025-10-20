@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cavaleiro e Slimes</title>
+ 
+  <script src="constantes.js"></script>
+  <script src="spritesheet.js"></script>
+  <script src="animacao.js"></script>
+  <script src="teclado.js"></script>
+  <script src="cavaleiro.js"></script>
+  <script src="slime.js"></script>
+  <script src="explosao.js"></script>
+  <script src="fundo.js"></script>
+  <script src="projetil.js"></script>
+
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    canvas {
+      border: 2px solid white;
+      background: #222;
+      margin-top: 20px;
+      outline: none;
+
+
+ }
+  body {
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+
+  canvas {
+    border: 2px solid white;
+    background: #222;
+    margin-top: 20px;
+    outline: none;
+  }
+
+  #botao_iniciar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 12px 24px;
+    font-size: 20px;
+    background-color: white;
+    color: black;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    z-index: 100;
+    position: relative; 
+  background: #111;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+    
+  }
+</style>
+
+</head>
+<body>
+  <canvas id="canvas_unico" width="600" height="500"></canvas>
+  <button id="botao_iniciar">Iniciar Jogo</button>
+  
+  <script>
+    document.getElementById("botao_iniciar").addEventListener("click", () => {
+  document.getElementById("botao_iniciar").style.display = "none"; // esconde o botão
+  telaInicio = false;
+  iniciarJogo();
+});
+
+    const canvas = document.getElementById('canvas_unico');
+    const context = canvas.getContext('2d');
+    const teclado = new Teclado(window); 
+    const animacao = new Animacao(context);
+
+    const imgCavaleiro = new Image();
+    const imgSlime = new Image();
+    const imgExplosao = new Image();
+    const imgFundo1 = new Image();
+    const imgFundo2 = new Image();
+    const imgFundo3 = new Image();
+
+    imgCavaleiro.src = 'img/cavaleiro.png';
+    imgSlime.src = 'img/slime.png';
+    imgExplosao.src = 'img/explosao.png';
+    imgFundo1.src = 'img/fundo1.png';
+    imgFundo2.src = 'img/fundo2.png';
+    imgFundo3.src = 'img/fundo3.png';
+
+    let carregados = 0;
+    const totalImagens = 6;
+    let vidas = 3;
+    let pontuacao = 0;
+
+
+    function imagemCarregada() {
+      carregados++;
+      if (carregados === totalImagens) iniciarJogo();
+    }
+
+    imgCavaleiro.onload = imagemCarregada;
+    imgSlime.onload = imagemCarregada;
+    imgExplosao.onload = imagemCarregada;
+    imgFundo1.onload = imagemCarregada;
+    imgFundo2.onload = imagemCarregada;
+    imgFundo3.onload = imagemCarregada;
+    
+    const somAtaque = new Audio('sons/ataque.mp3');
+    const somExplosaoBase = new Audio('sons/explosao.mp3'); 
+    const somGameOver = new Audio('sons/gameover.mp3');
+
+
+    let cavaleiro;
+    let slimes = [];
+    let ataques = [];
+    let explosoes = [];
+    let jogoAtivo = true;
+    let telaInicio = false;
+    canvas.focus();
+
+    let fundo1, fundo2, fundo3;
+
+    const botao = {
+  x: canvas.width / 2 - 100,
+  y: canvas.height / 2 + 20,
+  largura: 200,
+  altura: 50
+};
+
+
+    let podeAtacar = true;
+    const tempoCooldown = 500;
+
+    let contadorSpawn = 0;
+    const intervaloSpawn = 120;
+    const maxSlimes = 5;
+
+    function iniciarJogo() {
+      canvas.setAttribute("tabindex", "0");
+      canvas.focus();
+
+      fundo1 = new FundoParallax(context, imgFundo1, 0.5);
+      fundo2 = new FundoParallax(context, imgFundo2, 1.5);
+      fundo3 = new FundoParallax(context, imgFundo3, 3);
+
+      animacao.novoSprite(fundo1);
+      animacao.novoSprite(fundo2);
+      animacao.novoSprite(fundo3);
+
+      cavaleiro = new Cavaleiro(context, teclado, imgCavaleiro, SETA_DIREITA, SETA_ESQUERDA);
+      cavaleiro.x = 50;
+
+      const alturaCavaleiro = imgCavaleiro.height * cavaleiro.escala;
+      cavaleiro.y = canvas.height - alturaCavaleiro;
+
+      animacao.novoSprite(cavaleiro);
+
+      animacao.novoSprite({
+        atualizar: atualizarTudo,
+        desenhar: desenharTudo
+      });
+
+      animacao.ligar();
+
+      window.addEventListener("keydown", function (e) {
+        if (e.keyCode === TECLA_ATAQUE) {
+          e.preventDefault();
+
+          if (podeAtacar && jogoAtivo) {
+            podeAtacar = false;
+const som = somAtaque.cloneNode();
+som.play().catch(() => {
+  // som bloqueado, ignore ou aguarde interação
+});
+
+const ataque = new Projetil(
+  context,
+  cavaleiro.x + (cavaleiro.largura * cavaleiro.escala) / 2,
+  cavaleiro.y + (cavaleiro.altura * cavaleiro.escala) / 2,
+  cavaleiro.direcao,
+  som
+);
+       
+            ataques.push(ataque);
+            animacao.novoSprite(ataque);
+
+            setTimeout(() => {
+              podeAtacar = true;
+            }, tempoCooldown);
+          }
+        }
+      });
+    }
+    function atualizarTudo() {
+  if (!jogoAtivo) return;
+
+  // Atualiza todos os sprites
+  cavaleiro.atualizar();
+  slimes.forEach(s => s.atualizar());
+  ataques.forEach(a => a.atualizar());
+  explosoes.forEach(e => e.atualizar());
+
+  // Spawn de novos slimes
+  contadorSpawn++;
+  if (contadorSpawn >= intervaloSpawn && slimes.length < maxSlimes) {
+    const xInicial = canvas.width + (Math.random() * 500);
+    const novoSlime = new Slime(context, imgSlime, xInicial);
+    slimes.push(novoSlime);
+    animacao.novoSprite(novoSlime);
+    contadorSpawn = 0;
+  }
+
+  // Remove explosões expiradas
+  for (let i = explosoes.length - 1; i >= 0; i--) {
+    const e = explosoes[i];
+    if (e.expirou) {
+      animacao.sprites.splice(animacao.sprites.indexOf(e), 1);
+      explosoes.splice(i, 1);
+    }
+  }
+
+  // Colisão entre ataques e slimes
+  for (let i = ataques.length - 1; i >= 0; i--) {
+    const a = ataques[i];
+    let ataqueRemovido = false;
+
+    for (let j = slimes.length - 1; j >= 0; j--) {
+      const s = slimes[j];
+      if (s.ativo && colidiu(a, s)) {
+        s.ativo = false;
+        pontuacao += 10;
+
+        const som = somExplosaoBase.cloneNode();
+som.play().catch(() => {}); // ✅ evita erro de autoplay
+
+const explosao = new Explosao(context, imgExplosao, s.x, s.y, som);
+
+        explosoes.push(explosao);
+        animacao.novoSprite(explosao);
+
+        animacao.sprites.splice(animacao.sprites.indexOf(s), 1);
+        slimes.splice(j, 1);
+
+        animacao.sprites.splice(animacao.sprites.indexOf(a), 1);
+        ataques.splice(i, 1);
+        ataqueRemovido = true;
+        break;
+      }
+    }
+
+    if (ataqueRemovido) continue;
+
+    if (a.removivel) {
+      animacao.sprites.splice(animacao.sprites.indexOf(a), 1);
+      ataques.splice(i, 1);
+    }
+  }
+
+  // Colisão entre slimes e cavaleiro
+  slimes.forEach(s => {
+    if (s.ativo && colidiu(s, cavaleiro)) {
+      s.ativo = false;
+      vidas--;
+      cavaleiro.flash = true;
+    setTimeout(() => cavaleiro.flash = false, 100);
+
+      const explosao = new Explosao(context, imgExplosao, cavaleiro.x, cavaleiro.y, new Audio('sons/explosao.mp3'));
+      explosoes.push(explosao);
+      animacao.novoSprite(explosao);
+
+      if (vidas <= 0) {
+        jogoAtivo = false;
+        somGameOver.currentTime = 0;
+        somGameOver.play();
+        animacao.desligar();
+        document.getElementById("botao_iniciar").style.display = "inline"; // mostra o botão novamente
+        location.reload();
+
+      }
+    }
+  });
+
+}
+function desenharTudo() {
+  context.fillStyle = "rgba(0, 0, 0, 0.2)";
+context.fillRect(0, 0, canvas.width, canvas.height);
+
+
+  // Desenha fundo parallax
+  fundo1.desenhar();
+  fundo2.desenhar();
+  fundo3.desenhar();
+
+  // Desenha sprites ativos
+  ataques.forEach(a => a.desenhar());
+  explosoes.forEach(e => e.desenhar());
+  slimes.forEach(s => s.desenhar());
+ if (cavaleiro.flash) {
+  context.globalAlpha = 0.5;
+  cavaleiro.desenhar();
+  context.globalAlpha = 1;
+} else {
+  cavaleiro.desenhar();
+}
+
+
+  // 🎯 HUD: Vidas e Pontuação
+context.font = "bold 24px 'Courier New'";
+context.fillStyle = "#FFD700";
+context.textAlign = "left";
+context.fillText("Vidas: " + vidas, 10, 30);
+context.fillText("Pontuação: " + pontuacao, 10, 60);
+
+  // 🛑 GAME OVER centralizado
+  if (!jogoAtivo && vidas <= 0) {
+    context.fillStyle = "red";
+    context.font = "bold 40px Arial";
+    context.textAlign = "center";
+    context.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
+  }
+
+  // 🟢 Tela de início com botão
+  if (telaInicio) {
+    context.fillStyle = "rgba(0, 0, 0, 0.5)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.fillStyle = "white";
+    context.font = "bold 36px Arial";
+    context.textAlign = "center";
+    context.fillText("Cavaleiro e Slimes", canvas.width / 2, canvas.height / 2 - 60);
+    context.font = "20px Arial";
+    context.fillText("Pressione o botão para começar", canvas.width / 2, canvas.height / 2 - 20);
+
+    // Botão desenhado no canvas
+    context.fillStyle = "white";
+    context.fillRect(canvas.width / 2 - 100, canvas.height / 2 + 10, 200, 50);
+
+    context.fillStyle = "black";
+    context.font = "bold 20px Arial";
+    context.fillText("Iniciar Jogo", canvas.width / 2, canvas.height / 2 + 42);
+  }
+}
+ 
+    function colidiu(a, b) {
+      const larguraA = a.largura * (a.escala || 1);
+      const alturaA = a.altura * (a.escala || 1);
+      const deslocX_A = a.deslocamentoX || 0;
+      const deslocY_A = a.deslocamentoY || 0;
+
+      const larguraB = b.largura * (b.escala || 1);
+      const alturaB = b.altura * (b.escala || 1);
+      const deslocX_B = b.deslocamentoX || 0;
+      const deslocY_B = b.deslocamentoY || 0;
+
+      const aX1 = a.x + deslocX_A;
+      const aY1 = a.y + deslocY_A;
+      const aX2 = aX1 + larguraA;
+      const aY2 = aY1 + alturaA;
+
+      const bX1 = b.x + deslocX_B;
+      const bY1 = b.y + deslocY_B;
+      const bX2 = bX1 + larguraB;
+      const bY2 = bY1 + alturaB;
+
+      return (
+        aX1 < bX2 &&
+        aX2 > bX1 &&
+        aY1 < bY2 &&
+        aY2 > bY1
+
+
+      );
+    }
+  </script>
+</body>
+</html>
