@@ -1,0 +1,100 @@
+Goal
+
+Recreate a small 2D space defender game that matches the architecture, behavior, and quality demonstrated in the provided project. The target should be a self-contained browser game (HTML/CSS/JS) that is responsive, robust to missing assets, uses delta-time animation, preloads assets, and follows clear separation of concerns. The visual theme should use purple accents (not green). Keep the controls simple: left/right movement (ArrowLeft/ArrowRight or A/D) and spacebar to shoot. The game must be playable offline with provided assets.
+
+Deliverables
+
+- index.html: minimal, semantic structure with a canvas and overlay UIs (start screen, game over, info). Include a small loader and an accessible "Start" button disabled until assets finish loading.
+- style.css: responsive, retro-ish theme using purple accents (example primary: #7c4dff). Provide styles for start overlay, game-over overlay, buttons, loader and small hints. Keep CSS plain (no frameworks).
+- main.js: structured, modular JS (use ES6 classes and plain modules if desired, but a single file is OK). Responsibilities:
+  - Preload all image assets; allow graceful degradation to placeholders if an asset fails to load.
+  - Initialize a responsive canvas (keep 4:3 aspect ratio) and handle window resize.
+  - Implement game loop using requestAnimationFrame with delta-time, clamped to avoid huge steps.
+  - Use clear classes: Player, Projectile, Asteroid, and possibly a small AssetManager.
+  - Use safe array management: mark entities as dead and filter them out rather than splicing during iteration.
+  - Implement firing cooldown (e.g., 0.25s).
+  - Spawn asteroids with an interval that decreases mildly over time and a speed modifier that increases over time.
+  - Detect collisions with AABB collision boxes. Player/asteroid collision ends the game; projectile/asteroid collision removes both and increases score.
+  - Update UI elements (score, speed) from JS.
+  - Provide a final score on the game-over overlay.
+
+Gameplay & Mechanics
+
+- Controls: ArrowLeft / ArrowRight or A / D to move; Space to shoot. Prevent default on space to avoid page scrolling.
+- Player: positioned at bottom center, bounded by canvas edges; movement speed scales to canvas size.
+- Projectiles: shoot upwards, removed when off-screen, can destroy asteroids.
+- Asteroids: variable sizes and speeds; spawn above the top of the canvas; removed when off-screen or destroyed.
+- Difficulty scaling: every 10 seconds increase asteroid speed slightly; every 15 seconds reduce spawn interval slightly; ensure the game remains playable on slower devices by clamping max spawn and speed.
+- Parallax background: simple vertical tile or two-image loop.
+
+Robustness requirements
+
+- Preload images with Promises and only enable Start when all assets resolved (success or failed fallback).
+- If image load fails, game should continue and use colored rectangles as placeholders.
+- Use delta-time to keep gameplay framerate independent.
+- Clamp delta-time to a maximum (e.g., 50ms) to avoid huge jumps after tab switches.
+- Input handling should normalize keys and allow multiple keys pressed at once.
+
+Code style & practices
+
+- Use modern JavaScript (ES6+) and descriptive variable names. Keep functions small and focused.
+- Prefer composition over global state; minimize global variables.
+- Keep magic numbers in a CONFIG object at the top of the file with comments.
+- Keep UI DOM queries at the top and avoid repeated queries inside loops.
+- Provide brief inline comments explaining non-obvious math or heuristics.
+- Do not use external libraries—plain JS/CSS/HTML only.
+
+Edge cases & tests
+
+- Edge case: user resizes window mid-game — canvas should adapt and entities should keep coherent positions (relative to canvas width/height where reasonable).
+- Edge case: assets fail to load — placeholders should draw and game should still function.
+- Edge case: tab loses focus — when switching back, delta-time clamped to avoid jumpy physics.
+- Create 2 simple smoke tests (as comments/instructions):
+  1) Manually start game, wait 20s, verify speed (UI) increased and more asteroids spawn.
+  2) Disable an image (simulate missing asset) and verify placeholder rectangles are drawn without JS errors.
+
+Acceptance criteria
+
+- The provided HTML/CSS/JS run in a modern browser with no console errors.
+- The Start button remains disabled until image preload completes (successfully or with fallback), then becomes clickable.
+- Score increases when projectiles hit asteroids; final score displays on game-over screen.
+- Game uses purple accent colors, not green.
+- The animation uses requestAnimationFrame with delta-time and clamps large dt values.
+
+File layout & example structure
+
+- index.html
+  - references style.css and main.js
+  - contains: <canvas id="gameCanvas"></canvas>, overlays (#start-screen, #game-over-screen), and #game-info area
+- style.css
+  - top-level font, center the game, retro border in purple (#7c4dff), overlay styles, loader styles, button hover
+- main.js
+  - top: CONFIG, DOM queries, asset list, asset preload function
+  - classes: Player, Projectile, Asteroid
+  - functions: resizeCanvas(), preloadImages(), startGame(), endGame(), spawnAsteroids(), handleCollisions(), updateAndRender(ts)
+
+Extras (optional but nice)
+
+- Implement a simple SoundManager with preloaded audio: shoot, explosion, gameover. Provide a mute button.
+- Save high score in localStorage and show on game-over screen.
+
+Minimal run instructions
+
+1. Open index.html in browser.
+2. Wait for loader to finish and Start to enable.
+3. Click Start and play.
+
+Data shapes and small contract (for an AI implementing this)
+
+- Inputs: none (pure client-side). Optionally allow keyboard or touch input.
+- Outputs: canvas rendering; DOM updates for #score, #speed, #final-score.
+- Error modes: console warnings for failed assets; UI remains functional.
+- Success: playable loop, score increments, final score displayed.
+
+Tone for the AI implementer
+
+Be pragmatic: focus on correctness and robustness first, then polish visuals. Keep code readable and well-separated so future features can be added.
+
+---
+
+Include this prompt in the root of the project (assets/prompts/prompt.txt). Use it as the single source of truth for recreating the game.

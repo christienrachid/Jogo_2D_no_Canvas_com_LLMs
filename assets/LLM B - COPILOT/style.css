@@ -1,0 +1,81 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #000;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#game-container {
+    position: relative;
+    border: 2px solid #7c4dff; /* Borda roxa estilo retrô */
+}
+
+#gameCanvas {
+    background-color: #111;
+    display: block; /* Remove o espaço extra abaixo do canvas */
+}
+
+/* Estilos para as telas de sobreposição */
+#start-screen, #game-over-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    text-align: center;
+}
+
+h1 {
+    font-size: 3em;
+    color: #d1c4ff;
+    text-shadow: 0 0 10px #7c4dff;
+}
+
+button {
+    padding: 15px 30px;
+    font-size: 1.5em;
+    background-color: transparent;
+    border: 2px solid #7c4dff;
+    color: #7c4dff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #7c4dff;
+    color: #000;
+    box-shadow: 0 0 15px #7c4dff;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#loader {
+    color: #d1c4ff;
+    margin-bottom: 12px;
+}
+
+.hint {
+    margin-top: 12px;
+    font-size: 0.9em;
+    color: #b39ddb;
+}
+
+#game-info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: #d1c4ff;
+    text-shadow: 0 0 10px #7c4dff;
+}

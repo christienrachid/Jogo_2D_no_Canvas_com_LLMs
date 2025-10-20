@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defensor Espacial 2D</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="start-screen">
+            <h1>Defensor Espacial</h1>
+            <div id="loader">Carregando...</div>
+            <button id="startButton" disabled>Jogar</button>
+            <p class="hint">Use ← → para mover e Espaço para atirar</p>
+        </div>
+        <div id="game-over-screen" class="hidden">
+            <h1>Fim de Jogo</h1>
+            <p>Pontos: <strong id="final-score">0</strong></p>
+            <button id="restartButton">Jogar Novamente</button>
+        </div>
+        <div id="game-info">
+            <p>Score: <span id="score">0</span></p>
+            <p>Speed: <span id="speed">0</span></p>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
