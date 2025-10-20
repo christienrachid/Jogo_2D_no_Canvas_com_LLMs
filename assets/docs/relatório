@@ -1,0 +1,133 @@
+
+1. Introdução
+
+Este documento detalha a arquitetura técnica e a implementação do jogo 2D de plataforma e ação "Shuriken Dash". O projeto foi desenvolvido utilizando tecnologias web padrão, nomeadamente HTML5 Canvas, CSS3 e JavaScript (ES6+), sem recurso a bibliotecas ou frameworks de jogos externos. O objetivo foi criar uma experiência de jogo dinâmica, focada na reatividade dos controlos e num sistema de progressão de dificuldade.
+
+O relatório abrange a estrutura do projeto, o motor de jogo, a gestão de recursos (assets), a implementação das entidades, a inteligência artificial (IA) dos inimigos e os sistemas de física e colisão.
+
+2. Arquitetura do Projeto
+
+O código-fonte está modularizado em três ficheiros distintos para promover a separação de responsabilidades (Separation of Concerns):
+
+index.html: Responsável pela estrutura base da página. Contém o elemento <canvas>, que serve como tela para a renderização do jogo, e um elemento <p> para mensagens de carregamento. Importa os ficheiros style.css e main.js.
+
+style.css: Contém as regras de estilização. É responsável por centralizar o canvas na janela do navegador, definir um fundo escuro para a página e estilizar os elementos de texto, como o título e a mensagem de carregamento.
+
+main.js: O núcleo do projeto. Este ficheiro contém toda a lógica do jogo, incluindo:
+
+O loop principal do jogo.
+
+A gestão de estado (níveis, pontuação, game over).
+
+O controlo de entradas do utilizador (teclado).
+
+A definição e gestão de todas as entidades (Jogador, Inimigos, Projéteis).
+
+Os sistemas de física, animação e colisão.
+
+O pré-carregamento e gestão de recursos (imagens e sons).
+
+3. Motor de Jogo e Lógica Principal
+
+3.1. Pré-carregador de Recursos (Asset Preloader)
+
+Para evitar que o jogo inicie antes de todas as imagens e sons estarem prontos, foi implementado um sistema de pré-carregamento.
+
+Um objeto ASSETS_TO_LOAD define todos os caminhos para os ficheiros de imagem e som.
+
+Um loop itera sobre este objeto, criando instâncias de Image() e Audio().
+
+Listeners de eventos (onload para imagens, canplaythrough para sons) são associados a cada recurso.
+
+Uma função assetLoaded() é chamada sempre que um recurso termina de carregar, incrementando um contador.
+
+Quando o contador atinge o número total de recursos, o jogo é iniciado através da chamada à função init().
+
+Uma função assetFailedToLoad() exibe uma mensagem de erro detalhada caso um ficheiro não seja encontrado, facilitando a depuração.
+
+3.2. O Loop Principal do Jogo (Game Loop)
+
+O motor do jogo é baseado num loop de animação contínuo, gerido pela função requestAnimationFrame(gameLoop). Este método garante que o jogo seja atualizado e renderizado de forma otimizada, sincronizado com a taxa de atualização do monitor. O loop consiste em duas fases principais:
+
+update(): Responsável por toda a lógica do jogo. A cada frame, esta função atualiza a posição e o estado de todas as entidades, verifica colisões, processa as entradas do teclado e gere a progressão de níveis.
+
+draw(): Responsável pela renderização. Após a fase de update, esta função limpa o canvas (ctx.clearRect()) e desenha todas as entidades (cenário, jogador, inimigos, projéteis) nas suas novas posições.
+
+Esta separação garante que toda a lógica seja processada antes de qualquer desenho, evitando inconsistências visuais.
+
+4. Implementação das Entidades
+
+O jogo utiliza uma abordagem orientada a objetos, com uma classe base Entity da qual herdam todas as outras entidades do jogo.
+
+Player: Controlado pelo utilizador. A sua classe gere:
+
+Movimento: A velocidade é atualizada com base no estado das teclas (keys). A direção (direction) é armazenada para inverter o sprite e a trajetória dos projéteis.
+
+Física: Uma simples implementação de gravidade e força de pulo.
+
+Estado de Ataque: Um temporizador (attackTimer) controla a exibição do sprite de ataque.
+
+Renderização: O método draw() utiliza ctx.scale(-1, 1) para inverter horizontalmente o sprite quando o jogador muda de direção.
+
+Enemy: Entidade controlada por IA. A sua classe gere:
+
+IA e Comportamento: A velocidade é definida aleatoriamente num intervalo que aumenta com o nível. A decisão de pular é tomada com base numa probabilidade (Math.random()), adicionando imprevisibilidade.
+
+Máquina de Estados de Animação: O método draw() seleciona a spritesheet e o frame corretos com base no estado atual do inimigo (isDying, isHit, isOnGround).
+
+Física: Partilha a mesma lógica de gravidade e pulo do jogador.
+
+Ciclo de Vida: Quando a sua vida (health) chega a zero, transita para o estado isDying, executa a sua animação de morte e é finalmente marcado como isDead para ser removido do jogo.
+
+Screen Wrapping: Quando um inimigo sai do lado esquerdo do ecrã, a sua posição é redefinida para o lado direito.
+
+Projectile: Representa a shuriken. A sua lógica inclui uma variável rotation que é incrementada a cada frame para criar o efeito de giro durante o desenho.
+
+ParallaxLayer: Gere o cenário de fundo, movendo a imagem a uma velocidade controlada para criar um efeito de paralaxe e profundidade.
+
+5. Sistemas Chave
+
+5.1. Sistema de Colisão
+
+Foi utilizado o algoritmo AABB (Axis-Aligned Bounding Box), implementado na função checkAABBCollision(). Esta função compara as coordenadas x e y e as dimensões de duas entidades retangulares para determinar se elas se sobrepõem, sendo uma solução eficiente e adequada para este tipo de jogo.
+
+5.2. Gestão de Áudio
+
+A API Web Audio é utilizada para gerir os efeitos sonoros e a música de fundo. Para contornar as políticas de autoplay dos navegadores, a reprodução de qualquer som só é iniciada após a primeira interação do utilizador com o teclado (keydown). Os sons são geridos da seguinte forma:
+
+Música de Fundo e Passos: Reproduzidos em loop e pausados no ecrã de "FIM DE JOGO".
+
+Impacto e Morte: Reproduzidos uma vez quando o evento correspondente ocorre.
+
+6. Desenvolvimento com IA (Gemini)
+
+O desenvolvimento deste jogo foi um processo iterativo e colaborativo, realizado com a assistência da inteligência artificial Gemini, um modelo de linguagem da Google. O Gemini foi responsável por gerar, depurar e refatorar a maior parte do código com base numa série de prompts fornecidos pelo utilizador. O utilizador, por sua vez, atuou como diretor do projeto, fornecendo todos os recursos visuais e sonoros, definindo as mecânicas de jogo e orientando a evolução do projeto passo a passo.
+
+7. Dificuldades e Aprendizagens
+
+O processo de desenvolvimento em colaboração com uma IA revelou-se altamente eficaz, mas também demonstrou a importância da precisão e da atenção ao detalhe. As principais dificuldades encontradas foram:
+
+Precisão dos Prompts: O sucesso da implementação de uma funcionalidade está diretamente ligado à clareza e ao detalhe do prompt fornecido. Instruções ambíguas podem levar a interpretações incorretas por parte da IA, exigindo depuração e refinamento.
+
+Gestão de Recursos (Assets): Uma fonte recorrente de erros foi a gestão dos nomes dos ficheiros de imagem e som. Pequenas discrepâncias entre os nomes no código e os nomes reais dos ficheiros (incluindo letras maiúsculas/minúsculas e extensões como .png vs .jpg) impediam o carregamento dos recursos e o arranque do jogo.
+
+A principal aprendizagem deste processo é que, mesmo com uma ferramenta poderosa de geração de código, a supervisão humana e a atenção meticulosa aos detalhes técnicos, especialmente na integração de recursos externos, são fundamentais para o sucesso do projeto.
+
+8. Conclusão
+
+O projeto Shuriken Dash implementa com sucesso um jogo de ação 2D funcional e polido, utilizando apenas tecnologias web nativas. A arquitetura modular e a lógica de pré-carregamento garantem um código organizado e uma experiência de utilizador robusta. O modelo de desenvolvimento colaborativo com a IA Gemini provou ser uma abordagem poderosa, combinando a visão criativa do utilizador com a capacidade de geração de código da máquina para dar vida a um projeto complexo de forma eficiente.
+
+9. Créditos:
+- Phoenix1291 - https://phoenix1291.itch.io/sound-effects-pack-2
+- v.rozenfeld - https://vrozenfeld.itch.io/waterfall-2d-background
+- Nox_Sound_Design - https://nox-sound-design.itch.io/essentials-series-sfx-nox-sound?download
+- FinalGateStudios - https://finalgatestudios.itch.io/ninja-asset-pack
+- overcrafted - https://opengameart.org/content/ninja-cats
+- zenteaseeker - https://zenteaseeker.itch.io/animated-shuriken
+
+
+10. Prova de funcionamento:
+https://drive.google.com/file/d/1tcgw4418VAvqZqQdC17CaLoKd_sAud7a/view?usp=drive_link
+
+
+
