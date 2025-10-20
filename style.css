@@ -1,0 +1,137 @@
+/* ===== RESET E CONFIGURAÇÕES GLOBAIS ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+body {
+    font-family: 'Orbitron', 'Courier New', monospace;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e  100%);
+    color: #00ff88;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===== CONTAINER PRINCIPAL ===== */
+.game-container {
+    position: relative;
+    border: 3px solid #00ff88;
+    border-radius: 10px;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 136, 0.3),
+        inset 0 0 20px rgba(0, 255, 136, 0.1);
+    background: #000;
+}
+
+/* ===== CANVAS DO JOGO ===== */
+#gameCanvas {
+    display: block;
+    background: radial-gradient(ellipse at center, #001122 0%, #000 70%);
+    border-radius: 7px;
+}
+
+/* ===== HUD (Interface do Usuário) ===== */
+.hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.hud > div {
+    background: rgba(0, 20, 40, 0.8);
+    border: 2px solid #00ff88;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ff88;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+}
+
+.controls {
+    font-size: 12px !important;
+    opacity: 0.8;
+    max-width: 300px;
+}
+
+.audio-status {
+    font-size: 10px !important;
+    opacity: 0.6;
+    color: #ffaa00 !important;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* ===== MENUS DE PAUSA E GAME OVER ===== */
+.menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 20, 40, 0.95);
+    border: 3px solid #00ff88;
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    z-index: 200;
+    box-shadow: 
+        0 0 30px rgba(0, 255, 136, 0.5),
+        inset 0 0 20px rgba(0, 255, 136, 0.1);
+}
+
+.menu h2 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px #00ff88;
+    color: #00ff88;
+}
+
+.menu p {
+    font-size: 24px;
+    margin: 10px 0;
+    color: #88ffaa;
+}
+
+.hidden {
+    display: none;
+}
+
+/* ===== EFEITOS ESPECIAIS ===== */
+.game-container::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+        #00ff88 0%, 
+        #0088ff 25%, 
+        #ff0088 50%, 
+        #ffff00 75%, 
+        #00ff88 100%);
+    border-radius: 12px;
+    z-index: -1;
+    animation: borderGlow 3s ease-in-out infinite;
+}
+
+@keyframes borderGlow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
