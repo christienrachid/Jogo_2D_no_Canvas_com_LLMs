@@ -1,14 +1,35 @@
-html, body {
-  margin: 0;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  background: #111;
-  color: #eee;
-  font-family: system-ui, sans-serif;
+/* Reset básico e configuração da fonte */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
+body {
+    font-family: 'Inter', sans-serif; /* Fonte legível */
+    display: flex;
+    justify-content: center; /* Centralização horizontal */
+    align-items: center;    /* Centralização vertical */
+    min-height: 100vh;
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    text-align: center;
+    flex-direction: column;
+}
+h1 {
+    margin-bottom: 1rem;
+}
+
+/* Estilo para a mensagem de carregamento */
+#loadingMessage {
+    font-size: 1.2rem;
+    padding: 20px;
+}
+
+/* Estilização do Canvas (inicialmente escondido) */
 canvas {
-  background: #000;
-  border: 2px solid #444;
-  image-rendering: pixelated;
+    background-color: #000;
+    display: none; /* O canvas só aparece quando o jogo está pronto */
+    border-radius: 8px;
+    border: 2px solid #333;
 }
+

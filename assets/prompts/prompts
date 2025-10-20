@@ -1,0 +1,139 @@
+“Atue como desenvolvedor de jogos 2D em HTML5 Canvas. Sugira 3 ideias de jogo no tema ‘Gatos Ninja’, cada uma com: mecânicas centrais, entidades, estados do jogo, eventos de teclado, uso de paralaxe, colisão, spritesheet/clipping e disparo. Inclua uma lista de tarefas priorizadas (MVP → Polimento).”
+
+"gostei da ideia 2"
+
+“Crie um projeto base de jogo 2D em Canvas com: index.html simples; style.css básico (centralização e fonte legível); main.js contendo: loop de animação com requestAnimationFrame, funções update() e draw(), controle de teclado (WASD/setas), cenário com 2–3 camadas de paralaxe, estrutura de entidades (player, inimigos, balas, sushis), sistema de colisão AABB. Inclua comentários explicativos em cada seção do código.”
+
+"Adicione sushis em diferentes alturas, adicione uma ação de disparos através da tecla "espaço", inimigos que vem continuamente, um contador de mortes, de inimigos mortos e sushis coletados"
+
+"faça a alteração para pular ser com a seta para cima, deixe os sushis em alturas alcançáveis pelo pulo e faça os inimigos se moverem"
+
+"aumente a velocidade dos inimigos"
+
+"aumente a velocidade do gato para -4"
+
+"utilize a spritesheet que enviei para o fundo 2d"
+
+"adicione isso para o background: sourceX: 0, sourceY: 160, sourceWidth: 32, sourceHeight: 32"
+
+"utilize esse spritesheet para os sushis"
+
+"utilize essa spritesheet para o gato ninja"
+
+"utilize essa spritesheet para a animação do gato correndo"
+
+"utilize essa spritesheet para a animação de pular"
+
+"utilize essa spritesheet para a animação de cair"
+
+"utilize esta spritesheet para a aterrissagem"
+
+"utilize essa spritesheet para a morte do gato"
+
+"pode remover as spritesheets do gato ninja que adicionei por favor?"
+
+"remova os sushis, as spritesheets e a contagem"
+
+"adicione fases diferentes, a primeira faze contendo 5 inimigos, e a cada fase sendo adicionado cinco inimigos adicionais, além de um contador de níveis e mortes"
+
+"adicione essa spritesheet para a animação do gato correndo"
+
+"adiciona essa spritesheet para a animação do gato atacando"
+
+"use essa spritesheet para a shuriken"
+
+"faça com que inimigos venham em distintas quantidades"
+
+"faça com que os inimigos aleatoriamente possam aguentar de 1 a 3 tiros"
+
+"adicione essa spritesheet para a corrida do inimigo"
+
+"adicione essa spritesheet para quando o inimigo é atingido"
+
+"adicione essa spritesheet para a morte do inimigo"
+
+"me de mais sugestões de nome para o jogo"
+
+"quero usar o Shuriken Dash"
+
+"quero essa imagem como plano de fundo"
+
+"adicione esse som para a corrida do gato"
+
+"adicione o seguinte som para o background do jogo"
+
+"adicione esse som para quando a shuriken atingir o inimigo"
+
+"adicione esse som para a morte do gato"
+
+"I'm getting the following errors when I run the code: ... Can you fix this?"
+
+"adicione um contador de nivel maximo atingido"
+
+"Adicione colisão shuriken vs inimigo (AABB)"
+
+"pode me passar o arquivo em .zip?"
+
+"faça isso para o código: 2) Geração do Esqueleto (HTML, CSS e JS)..."
+
+"o codigo está só no html"
+
+"ok mas eu quero que seja separado em index.html, style.css básico (centralização e fonte legível) e main.js contendo as funções do jogo, background, parallaxe, sons, ações e imagens"
+
+"pode mandar todos os prompts que enviei por favor?"
+
+"pode ajustar o codigo para que as imagens e sons e sprites estejam em uma pasta chamada /assets"
+
+"agora pode me passar o nome das imagens?"
+
+"me mande o codigo sem o /assets"
+
+"agora os sons por favor"
+
+"nada é carregado na tela, somente o som de fundo"
+
+"permanece do mesmo jeito"
+
+"preciso ver os outros arquivos"
+
+"agora o main.js?"
+
+"o jogo continua carregando recursos eternamente"
+
+"poderia separar as imagens das spritesheets para os movimentos?"
+
+"esta separação clara por agora"
+
+"permitir que o gato se mova para a esquerda e direita com as setas e pular também"
+
+"as spritesheets parecem não ter carregado, pois o jogo fica carregando sem parar"
+
+"ERRO: Não foi possível carregar o ficheiro 'Lose 1 - Sound effects Pack 2.wav'. Verifica o nome do ficheiro e se ele está na mesma pasta que o index.html. eu mudei o nome do ficheiro para death_sound"
+
+(Código colado) "falta carregar 1 asset"
+
+(Código colado) "qual é o asset que não carrega?"
+
+"a imagem original da shuriken é png e do waterfall também"
+
+"ainda existem 2 ficheiros que não carregam"
+
+"você está insistindo nas extensões, porém as extensões corretas são png, visto que o canvas as carrega corretamente quando as altero para PNG, o erro está em outro asset"
+
+"continua aparecendo 2, altere para essa spritesheet"
+
+"retire a futuras melhorias, adicione que foi feito utilizando o gemini e uma sessão de dificuldades afirmando que é necessário muita atenção no que é implementado, no código e nos prompts"
+
+"pode me mandar todas os prompts?"
+
+"permita com que o gato atire shuriken para ambos os lados,como o gato mudando de lado enquanto lança a shuriken, faça com que os inimigos quando cheguem na borda da tela, voltem para o outro lado, altere o nome dos assets shuriken: 'Shuriken_2_spritesheet.jpg', para shuriken: 'Shuriken_2_spritesheet.png', background: 'waterfall.jpg' para background: 'waterfall.png' e backgroundMusic: 'Ambiance_Nature_River_Moderate_Loop_Stereo.wav', para backgroundMusic: 'Ambiance_Waterfall_Calm_Loop_Stereo.wav',"
+
+"envie todos os meus prompts por gentileza"
+
+"faça agora um arquivo readme detalhado explicando o jogo"
+
+"pode adicionar no codigo inimigos com diferentes velocidades?"
+
+"quando o inimigo pula, a spritesheet mostra 4 ninjas"
+
+"agora está mostrando 2"
