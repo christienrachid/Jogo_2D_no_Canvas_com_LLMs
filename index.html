@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Space Drift — Projeto Jogo 2D (Canvas)</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="game-wrap">
+  <canvas id="game"></canvas>
+  <div id="hud">
+    <div id="score">Pontos: 0</div>
+    <div id="info">WASD / setas — Mover • Espaço — Atirar • P — Pausar</div>
+  </div>
+  <div id="credits">Assets: exemplos gerados • LLMs: ChatGPT, Gemini</div>
+</div>
+
+<!-- Scripts (order matters) -->
+<script src="background.js"></script>
+<script src="player.js"></script>
+<script src="enemy.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+Prompts usados (exemplo):
+- Ideação: "Atue como desenvolvedor de jogos 2D em HTML5 Canvas. Sugira 3 ideias..."
+- Esqueleto: "Crie um projeto base de jogo 2D em Canvas com index.html, style.css, main.js..."
+LLMs citadas: ChatGPT, Gemini.
+(Timestamp: gerado automaticamente)
