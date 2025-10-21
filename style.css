@@ -1,0 +1,12 @@
+:root {
+  --bg: #060814;
+  --panel: rgba(0,0,0,0.35);
+  --accent: #4fe1c1;
+  --hud-contrast: rgba(255,255,255,0.95);
+  font-family: Inter, Roboto, Arial, sans-serif;
+}
+html,body{height:100%;margin:0;background:radial-gradient(ellipse at center,#07102b 0%,var(--bg) 60%);color:var(--hud-contrast);-webkit-font-smoothing:antialiased;}
+#game-wrap{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:10px;padding:12px;box-sizing:border-box;}
+canvas#game{background:transparent;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.02);max-width:100%;width:900px;height:600px;}
+#hud{display:flex;justify-content:space-between;width:900px;max-width:100%;color:var(--hud-contrast);font-size:14px;background:var(--panel);padding:8px 12px;border-radius:8px;box-shadow:0 4px 14px rgba(3,6,10,0.5);}
+#credits{color:rgba(255,255,255,0.6);font-size:12px;width:900px;max-width:100%;text-align:left;}
