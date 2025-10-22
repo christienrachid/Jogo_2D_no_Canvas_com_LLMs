@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐝 Bee Rush - HTML5 Game</title>
+    <style>
+        /* ========================================
+           ESTILO CSS BÁSICO
+           ======================================== */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #ecf0f1;
+        }
+
+        h1 {
+            color: #FFD700;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        #gameCanvas {
+            border: 4px solid #FFD700;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            background-color: #87CEEB;
+            display: block;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            text-align: center;
+            max-width: 800px;
+            background: rgba(52, 73, 94, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .instructions h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .instructions p {
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .instructions strong {
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐝 BEE RUSH</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div class="instructions">
+        <h3>Como Jogar:</h3>
+        <p>
+            Use as <strong>setas ↑↓</strong> ou <strong>W/S</strong> para mover a abelha verticalmente.<br>
+            Pressione <strong>ESPAÇO</strong> para atirar pólen e destruir vespas.<br>
+            Colete <strong>flores rosas</strong> para ganhar pontos!<br>
+            Evite colidir com as <strong>vespas vermelhas</strong>.<br><br>
+            Pressione <strong>R</strong> para reiniciar após Game Over.
+        </p>
+    </div>
+
+    <script>
+        // ========================================
+        // MAIN.JS - LÓGICA DO JOGO
+        // ========================================
+        
+        // Obtém o canvas e contexto 2D
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // ========================================
+        // CONFIGURAÇÕES DO JOGO
+        // ========================================
+        const CONFIG = {
+            width: 800,
+            height: 600,
+            gravity: 0.5,
+            gameSpeed: 2,
+            spawnInterval: 120 // frames entre spawns
+        };
+
+        // ========================================
+        // SISTEMA DE INPUT (TECLADO)
+        // ========================================
+        const keys = {
+            up: false,
+            down: false,
+            space: false
+        };
+
+        // Event listeners para teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') keys.up = true;
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') keys.down = true;
+            if (e.key === ' ') {
+                keys.space = true;
+                e.preventDefault(); // Previne scroll da página
+            }
+            
+            // Reiniciar jogo
+            if ((e.key === 'r' || e.key === 'R') && gameState.current === 'gameover') {
+                restartGame();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') keys.up = false;
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') keys.down = false;
+            if (e.key === ' ') keys.space = false;
+        });
+
+        // ========================================
+        // SISTEMA DE PARALAXE (3 CAMADAS)
+        // ========================================
+        class ParallaxLayer {
+            constructor(color, speed, y, height) {
+                this.color = color;
+                this.speed = speed; // multiplicador de velocidade (0.2 - 1.0)
+                this.x1 = 0;
+                this.x2 = CONFIG.width;
+                this.y = y;
+                this.height = height;
+                this.shapes = this.generateShapes();
+            }
+
+            // Gera formas aleatórias para simular nuvens/árvores
+            generateShapes() {
+                const shapes = [];
+                const count = Math.floor(Math.random() * 3) + 2;
+                for (let i = 0; i < count; i++) {
+                    shapes.push({
+                        x: Math.random() * CONFIG.width,
+                        y: Math.random() * this.height,
+                        width: Math.random() * 60 + 40,
+                        height: Math.random() * 40 + 20,
+                        alpha: 0.3 + Math.random() * 0.4
+                    });
+                }
+                return shapes;
+            }
+
+            update() {
+                // Move as duas "telas" de fundo para simular movimento infinito
+                this.x1 -= CONFIG.gameSpeed * this.speed;
+                this.x2 -= CONFIG.gameSpeed * this.speed;
+
+                // Quando uma tela sai completamente, reposiciona ela à direita
+                if (this.x1 + CONFIG.width <= 0) {
+                    this.x1 = this.x2 + CONFIG.width;
+                    this.shapes = this.generateShapes();
+                }
+                if (this.x2 + CONFIG.width <= 0) {
+                    this.x2 = this.x1 + CONFIG.width;
+                }
+            }
+
+            draw(ctx) {
+                // Desenha ambas as "telas" para criar loop infinito
+                this.drawSection(ctx, this.x1);
+                this.drawSection(ctx, this.x2);
+            }
+
+            drawSection(ctx, x) {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(x, this.y, CONFIG.width, this.height);
+
+                // Desenha formas decorativas (nuvens/árvores)
+                this.shapes.forEach(shape => {
+                    ctx.globalAlpha = shape.alpha;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.ellipse(
+                        x + shape.x,
+                        this.y + shape.y,
+                        shape.width,
+                        shape.height,
+                        0, 0, Math.PI * 2
+                    );
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                });
+            }
+        }
+
+        // ========================================
+        // CLASSE BASE: ENTIDADE
+        // ========================================
+        class Entity {
+            constructor(x, y, width, height, color) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.color = color;
+                this.velX = 0;
+                this.velY = 0;
+                this.alive = true;
+            }
+
+            // Atualiza posição com base na velocidade
+            update() {
+                this.x += this.velX;
+                this.y += this.velY;
+            }
+
+            // Renderiza a entidade como retângulo
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            // Verifica se está fora da tela
+            isOffScreen() {
+                return this.x + this.width < 0 || 
+                       this.x > CONFIG.width || 
+                       this.y + this.height < 0 || 
+                       this.y > CONFIG.height;
+            }
+
+            // Retorna caixa de colisão (AABB - Axis-Aligned Bounding Box)
+            getBounds() {
+                return {
+                    left: this.x,
+                    right: this.x + this.width,
+                    top: this.y,
+                    bottom: this.y + this.height
+                };
+            }
+        }
+
+        // ========================================
+        // PLAYER (ABELHA)
+        // ========================================
+        class Player extends Entity {
+            constructor() {
+                super(100, CONFIG.height / 2 - 15, 40, 30, '#FFD700');
+                this.maxSpeed = 5;
+                this.acceleration = 0.5;
+                this.shootCooldown = 0;
+                this.shootDelay = 20; // frames entre disparos
+                this.animationFrame = 0;
+                this.animationSpeed = 5;
+                this.animationCounter = 0;
+            }
+
+            update() {
+                // Controle vertical suave com aceleração
+                if (keys.up) {
+                    this.velY -= this.acceleration;
+                }
+                if (keys.down) {
+                    this.velY += this.acceleration;
+                }
+
+                // Aplica atrito para suavizar movimento
+                this.velY *= 0.9;
+
+                // Limita velocidade máxima
+                if (this.velY > this.maxSpeed) this.velY = this.maxSpeed;
+                if (this.velY < -this.maxSpeed) this.velY = -this.maxSpeed;
+
+                // Atualiza posição
+                super.update();
+
+                // Mantém player dentro da tela
+                if (this.y < 0) this.y = 0;
+                if (this.y + this.height > CONFIG.height) {
+                    this.y = CONFIG.height - this.height;
+                }
+
+                // Sistema de disparo
+                if (this.shootCooldown > 0) this.shootCooldown--;
+
+                // Animação simples (oscilação das asas)
+                this.animationCounter++;
+                if (this.animationCounter >= this.animationSpeed) {
+                    this.animationFrame = (this.animationFrame + 1) % 4;
+                    this.animationCounter = 0;
+                }
+            }
+
+            draw(ctx) {
+                // Corpo da abelha (amarelo dourado)
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+
+                // Listras pretas
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(this.x + 10, this.y + 5, 5, this.height - 10);
+                ctx.fillRect(this.x + 25, this.y + 5, 5, this.height - 10);
+
+                // Asas (animação simples de batimento)
+                const wingOffset = Math.sin(this.animationFrame * 0.5) * 3;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.beginPath();
+                ctx.ellipse(this.x + 15, this.y - wingOffset, 15, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(this.x + 15, this.y + this.height + wingOffset, 15, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Olhos
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width - 8, this.y + 10, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            shoot() {
+                // Verifica cooldown do disparo
+                if (this.shootCooldown === 0) {
+                    this.shootCooldown = this.shootDelay;
+                    return new Bullet(
+                        this.x + this.width,
+                        this.y + this.height / 2 - 2.5,
+                        5,
+                        5,
+                        '#FFFF00'
+                    );
+                }
+                return null;
+            }
+        }
+
+        // ========================================
+        // BALA (PÓLEN)
+        // ========================================
+        class Bullet extends Entity {
+            constructor(x, y, width, height, color) {
+                super(x, y, width, height, color);
+                this.velX = 8; // Velocidade horizontal da bala
+            }
+
+            draw(ctx) {
+                // Desenha bala como círculo brilhante
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // ========================================
+        // INIMIGO (VESPA/OBSTÁCULO)
+        // ========================================
+        class Enemy extends Entity {
+            constructor(type = 'wasp') {
+                const y = Math.random() * (CONFIG.height - 60) + 30;
+                super(CONFIG.width, y, 35, 35, '#8B0000');
+                this.type = type;
+                this.velX = -(2 + Math.random() * 2);
+                this.animationFrame = 0;
+            }
+
+            draw(ctx) {
+                // Corpo do inimigo (vermelho escuro)
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+
+                // Listras amarelas
+                ctx.fillStyle = '#FFFF00';
+                ctx.fillRect(this.x + 8, this.y + 5, 4, this.height - 10);
+                ctx.fillRect(this.x + 20, this.y + 5, 4, this.height - 10);
+
+                // Asas
+                ctx.fillStyle = 'rgba(200, 200, 200, 0.5)';
+                ctx.beginPath();
+                ctx.ellipse(this.x + 10, this.y - 5, 12, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Olhos vermelhos (malvados)
+                ctx.fillStyle = '#FF0000';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width - 10, this.y + 12, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // ========================================
+        // FLOR COLETÁVEL
+        // ========================================
+        class Flower extends Entity {
+            constructor() {
+                const y = Math.random() * (CONFIG.height - 60) + 30;
+                super(CONFIG.width, y, 25, 25, '#FF69B4');
+                this.velX = -CONFIG.gameSpeed;
+                this.points = 10;
+            }
+
+            draw(ctx) {
+                // Pétalas (5 pétalas em círculo)
+                ctx.fillStyle = this.color;
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * Math.PI * 2) / 5;
+                    const petalX = this.x + this.width/2 + Math.cos(angle) * 8;
+                    const petalY = this.y + this.height/2 + Math.sin(angle) * 8;
+                    ctx.beginPath();
+                    ctx.arc(petalX, petalY, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Centro da flor (amarelo)
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2, this.y + this.height/2, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // ========================================
+        // SISTEMA DE COLISÃO AABB
+        // (Axis-Aligned Bounding Box)
+        // ========================================
+        function checkCollision(entity1, entity2) {
+            const b1 = entity1.getBounds();
+            const b2 = entity2.getBounds();
+
+            // Verifica se há sobreposição nos eixos X e Y
+            // Se NÃO houver sobreposição em qualquer eixo, não há colisão
+            return !(
+                b1.right < b2.left ||   // entity1 está à esquerda de entity2
+                b1.left > b2.right ||   // entity1 está à direita de entity2
+                b1.bottom < b2.top ||   // entity1 está acima de entity2
+                b1.top > b2.bottom      // entity1 está abaixo de entity2
+            );
+        }
+
+        // ========================================
+        // GERENCIAMENTO DE ESTADOS DO JOGO
+        // ========================================
+        const gameState = {
+            current: 'playing', // Estados possíveis: 'playing', 'gameover'
+            score: 0,
+            frameCount: 0
+        };
+
+        // ========================================
+        // INICIALIZAÇÃO DAS ENTIDADES
+        // ========================================
+        const player = new Player();
+        const bullets = [];
+        const enemies = [];
+        const flowers = [];
+
+        // Camadas de paralaxe (do fundo para frente)
+        const parallaxLayers = [
+            new ParallaxLayer('#87CEEB', 0.2, 0, 200),      // Camada 1: Céu com nuvens
+            new ParallaxLayer('#90EE90', 0.5, 200, 250),    // Camada 2: Árvores distantes
+            new ParallaxLayer('#228B22', 0.8, 450, 150)     // Camada 3: Grama frontal
+        ];
+
+        // ========================================
+        // SPAWN DE ENTIDADES
+        // ========================================
+        function spawnEntities() {
+            gameState.frameCount++;
+
+            // Spawn inimigos (vespas) a cada intervalo definido
+            if (gameState.frameCount % CONFIG.spawnInterval === 0) {
+                enemies.push(new Enemy());
+            }
+
+            // Spawn flores (menos frequente que inimigos)
+            if (gameState.frameCount % (CONFIG.spawnInterval * 1.5) === 0) {
+                flowers.push(new Flower());
+            }
+        }
+
+        // ========================================
+        // FUNÇÃO UPDATE (LÓGICA DO JOGO)
+        // ========================================
+        function update() {
+            // Não atualiza se o jogo terminou
+            if (gameState.current !== 'playing') return;
+
+            // Atualiza camadas de paralaxe
+            parallaxLayers.forEach(layer => layer.update());
+
+            // Atualiza player
+            player.update();
+
+            // Disparo ao pressionar espaço
+            if (keys.space) {
+                const bullet = player.shoot();
+                if (bullet) bullets.push(bullet);
+            }
+
+            // Atualiza balas
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                bullets[i].update();
+                
+                // Remove balas que saíram da tela
+                if (bullets[i].isOffScreen()) {
+                    bullets.splice(i, 1);
+                }
+            }
+
+            // Atualiza inimigos
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].update();
+                
+                // Colisão inimigo vs player (GAME OVER)
+                if (checkCollision(player, enemies[i])) {
+                    gameState.current = 'gameover';
+                }
+
+                // Colisão inimigo vs balas
+                for (let j = bullets.length - 1; j >= 0; j--) {
+                    if (checkCollision(enemies[i], bullets[j])) {
+                        // Remove inimigo e bala, adiciona pontos
+                        enemies.splice(i, 1);
+                        bullets.splice(j, 1);
+                        gameState.score += 50;
+                        break;
+                    }
+                }
+
+                // Remove inimigos fora da tela
+                if (enemies[i] && enemies[i].isOffScreen()) {
+                    enemies.splice(i, 1);
+                }
+            }
+
+            // Atualiza flores
+            for (let i = flowers.length - 1; i >= 0; i--) {
+                flowers[i].update();
+                
+                // Colisão player vs flores (COLETA)
+                if (checkCollision(player, flowers[i])) {
+                    gameState.score += flowers[i].points;
+                    flowers.splice(i, 1);
+                }
+                // Remove flores fora da tela
+                else if (flowers[i].isOffScreen()) {
+                    flowers.splice(i, 1);
+                }
+            }
+
+            // Spawn de novas entidades
+            spawnEntities();
+        }
+
+        // ========================================
+        // FUNÇÃO DRAW (RENDERIZAÇÃO)
+        // ========================================
+        function draw() {
+            // Limpa o canvas com cor de céu
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
+
+            // Desenha camadas de paralaxe (fundo para frente)
+            parallaxLayers.forEach(layer => layer.draw(ctx));
+
+            if (gameState.current === 'playing') {
+                // Desenha flores (atrás dos inimigos)
+                flowers.forEach(flower => flower.draw(ctx));
+
+                // Desenha inimigos
+                enemies.forEach(enemy => enemy.draw(ctx));
+
+                // Desenha balas
+                bullets.forEach(bullet => bullet.draw(ctx));
+
+                // Desenha player (sempre na frente)
+                player.draw(ctx);
+
+                // HUD - Pontuação
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText(`Score: ${gameState.score}`, 20, 40);
+
+                // Instruções na parte inferior
+                ctx.font = '14px Arial';
+                ctx.fillText('↑↓ ou W/S: Mover | SPACE: Atirar', 20, CONFIG.height - 20);
+
+            } else if (gameState.current === 'gameover') {
+                // Tela de Game Over com overlay semi-transparente
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
+
+                // Texto de Game Over
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER', CONFIG.width / 2, CONFIG.height / 2 - 40);
+                
+                // Pontuação final
+                ctx.font = 'bold 32px Arial';
+                ctx.fillText(`Score: ${gameState.score}`, CONFIG.width / 2, CONFIG.height / 2 + 20);
+                
+                // Instrução de restart
+                ctx.font = '20px Arial';
+                ctx.fillText('Pressione R para reiniciar', CONFIG.width / 2, CONFIG.height / 2 + 70);
+                ctx.textAlign = 'left';
+            }
+        }
+
+        // ========================================
+        // GAME LOOP (LOOP PRINCIPAL)
+        // Executa 60 vezes por segundo (60 FPS)
+        // ========================================
+        function gameLoop() {
+            update(); // Atualiza lógica do jogo
+            draw();   // Renderiza o jogo
+            requestAnimationFrame(gameLoop); // Chama novamente no próximo frame
+        }
+
+        // ========================================
+        // RESTART DO JOGO
+        // ========================================
+        function restartGame() {
+            // Reseta estado do jogo
+            gameState.current = 'playing';
+            gameState.score = 0;
+            gameState.frameCount = 0;
+            
+            // Limpa todos os arrays de entidades
+            bullets.length = 0;
+            enemies.length = 0;
+            flowers.length = 0;
+            
+            // Reseta posição e velocidade do player
+            player.x = 100;
+            player.y = CONFIG.height / 2 - 15;
+            player.velY = 0;
+            player.shootCooldown = 0;
+        }
+
+        // ========================================
+        // INICIA O JOGO
+        // ========================================
+        gameLoop();
+    </script>
+</body>
+</html>
